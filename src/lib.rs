@@ -8,7 +8,7 @@
 //! ## Example
 //!
 //! ```ignore
-//! describe!("stainless" {
+//! describe! stainless {
 //!     before_each {
 //!         // Start up a test.
 //!         let mut stainless = true;
@@ -24,13 +24,13 @@
 //!         stainless = false;
 //!     }
 //!
-//!     describe!("nesting" {
+//!     describe! nesting {
 //!         it "makes it simple to categorize tests" {
 //!             // It even generates submodules!
 //!             assert_eq!(2u, 2u);
 //!         }
-//!     })
-//! })
+//!     }
+//! }
 //! ```
 //!
 //! Expands to (roughly):
