@@ -1,5 +1,5 @@
 #![license = "MIT"]
-#![feature(plugin_registrar, managed_boxes)]
+#![feature(plugin_registrar)]
 #![deny(warnings)]
 
 //! Stainless is a lightweight, unopinionated testing framework for Rust.
