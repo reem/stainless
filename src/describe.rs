@@ -27,6 +27,25 @@ struct Test {
     block: P<ast::Block>
 }
 
+/// Defines the overarching `describe!` syntax extension.
+///
+/// All other macros in stainless are actually "fake" in the sense
+/// that they are detected and expanded inside of the implementation
+/// of `describe!`.
+pub fn describe(cx: &mut base::ExtCtxt, _: codemap::Span, tokens: &[ast::TokenTree]) -> Box<base::MacResult + 'static> {
+    // Parse a full DescribeState from the input, emitting errors if used incorrectly.
+    let state = parse_describe(DescribeState {
+        name: None, before: None, after: None,
+        before_each: None, after_each: None, tests: vec![]
+    }, parse::tts_to_parser(cx.parse_sess(), tokens.to_vec(), cx.cfg()));
+
+    // Create tests from a full DescribeState
+    let tests = create_tests(state, cx);
+
+    // Turn the tests into a MacResult
+    box MacItems { items: tests } as Box<base::MacResult + 'static>
+}
+
 fn create_tests(state: DescribeState, cx: &mut base::ExtCtxt) -> Vec<P<ast::Item>> {
     let name = state.name.unwrap().replace(" ", "_");
 
@@ -156,5 +175,13 @@ fn parse_describe(mut state: DescribeState, mut parser: parse::parser::Parser) -
     }
 
     state
+}
+
+struct MacItems { items: Vec<P<ast::Item>> }
+
+impl base::MacResult for MacItems {
+    fn make_items(self: Box<MacItems>) -> Option<SmallVector<P<ast::Item>>> {
+        Some(SmallVector::many(self.items.clone()))
+    }
 }
 
