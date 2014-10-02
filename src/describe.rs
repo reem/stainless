@@ -59,10 +59,13 @@ fn create_tests(state: DescribeState, cx: &mut base::ExtCtxt) -> Vec<P<ast::Item
     let (before_each, after_each) = (state.before_each, state.after_each);
     let tests = state.tests;
 
+    // Create the #[test] attribute.
     let test_attribute = cx.attribute(codemap::DUMMY_SP,
                                       cx.meta_word(codemap::DUMMY_SP, parse::token::InternedString::new("test")));
 
     tests.into_iter().map(|Test { description, block }| {
+        // Create the full test body by splicing in the statements and view items of the before and
+        // after blocks if they are present.
         let test_body = match (&before_each, &after_each) {
             (&None, &None) => block,
 
@@ -91,17 +94,27 @@ fn create_tests(state: DescribeState, cx: &mut base::ExtCtxt) -> Vec<P<ast::Item
             }
         };
 
+        // Create the final Item that represents the test.
         P(ast::Item {
+            // Name it with a snake_case version of the description.
             ident: cx.ident_of(description.replace(" ", "_").as_slice()),
+
+            // Add #[test]
             attrs: vec![test_attribute.clone()],
             id: ast::DUMMY_NODE_ID,
             node: ast::ItemFn(
+                // Takes no arguments and returns ()
                 cx.fn_decl(vec![], cx.ty_nil()),
+
+                // All the usual types.
                 ast::NormalFn,
                 abi::Rust,
                 ast_util::empty_generics(),
+
+                // Add the body of the function.
                 test_body
             ),
+            // Inherited visibility (not pub)
             vis: ast::Inherited,
             span: codemap::DUMMY_SP
         })
