@@ -2,14 +2,14 @@
 #[phase(plugin, link)]
 extern crate stainless;
 
-describe!("top level" {
-    it "less specific" {
+describe! top_level {
+    it "should be less specific" {
         assert_eq!(1u, 1u);
     }
 
-    describe!("nested" {
-        it "more specific" {
+    describe! nested {
+        it "should be more specific" {
             assert_eq!(2u, 2u);
         }
-    })
-})
+    }
+}

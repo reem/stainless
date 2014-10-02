@@ -2,7 +2,7 @@
 #[phase(plugin, link)]
 extern crate stainless;
 
-describe!("addition" {
+describe! addition {
     before_each {
         let x = 5u; let y = 6u;
     }
@@ -15,5 +15,5 @@ describe!("addition" {
         assert_eq!(x, 5);
         assert_eq!(y, 6);
     }
-})
+}
 
