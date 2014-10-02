@@ -39,16 +39,17 @@ pub fn describe(cx: &mut base::ExtCtxt, _: codemap::Span, tokens: &[ast::TokenTr
         before_each: None, after_each: None, tests: vec![]
     }, parse::tts_to_parser(cx.parse_sess(), tokens.to_vec(), cx.cfg()));
 
+    let name = cx.ident_of(state.name.clone().unwrap().replace(" ", "_").as_slice());
+
     // Create tests from a full DescribeState
     let tests = create_tests(state, cx);
+    let super_glob = cx.view_use_glob(codemap::DUMMY_SP, ast::Inherited, vec![cx.ident_of("super")]);
 
-    // Turn the tests into a MacResult
-    box MacItems { items: tests } as Box<base::MacResult + 'static>
+    let test_mod = cx.item_mod(codemap::DUMMY_SP, codemap::DUMMY_SP, name, vec![], vec![super_glob], tests);
+    box MacItems { items: vec![test_mod] }
 }
 
 fn create_tests(state: DescribeState, cx: &mut base::ExtCtxt) -> Vec<P<ast::Item>> {
-    let name = state.name.unwrap().replace(" ", "_");
-
     // FIXME(reem): Implement before and after.
     let (_before, _after) = (state.before, state.after);
 
@@ -87,12 +88,8 @@ fn create_tests(state: DescribeState, cx: &mut base::ExtCtxt) -> Vec<P<ast::Item
             }
         };
 
-        let mut test_name = name.clone();
-        test_name.push_str("_");
-        test_name.push_str(description.replace(" ", "_").as_slice());
-
         P(ast::Item {
-            ident: cx.ident_of(test_name.as_slice()),
+            ident: cx.ident_of(description.replace(" ", "_").as_slice()),
             attrs: vec![test_attribute.clone()],
             id: ast::DUMMY_NODE_ID,
             node: ast::ItemFn(
