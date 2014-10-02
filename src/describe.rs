@@ -145,7 +145,7 @@ fn parse_describe(parser: &mut parse::parser::Parser, cx: &mut base::ExtCtxt) ->
 
     // Move past the opening {
     if token::LBRACE != parser.bump_and_get() {
-        parser.fatal("Expected { after the description of a describe! block.");
+        parser.fatal("Expected { after the name of a describe! block.");
     }
 
     // Now parse all tests and subsections:
@@ -156,6 +156,7 @@ fn parse_describe(parser: &mut parse::parser::Parser, cx: &mut base::ExtCtxt) ->
         //     - before
         //     - after
         //     - it
+        //     - describe!
         //
         // Any other top-level idents are not allowed.
         let block_name = parser.parse_ident();
@@ -194,7 +195,7 @@ fn parse_describe(parser: &mut parse::parser::Parser, cx: &mut base::ExtCtxt) ->
                 }));
             },
 
-            // Sub `describe!` block.
+            // Nested `describe!` block.
             DESCRIBE => {
                 // Skip over the ! and (
                 match (parser.bump_and_get(), parser.bump_and_get()) {
