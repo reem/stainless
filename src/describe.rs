@@ -13,7 +13,7 @@ static DESCRIBE:    &'static str = "describe";
 
 /// Defines the state of a `describe!` macro as it is parsing.
 struct DescribeState {
-    name: Option<String>,
+    name: Option<ast::Ident>,
     before: Option<P<ast::Block>>,
     after: Option<P<ast::Block>>,
     before_each: Option<P<ast::Block>>,
@@ -37,17 +37,18 @@ struct Test {
 /// All other macros in stainless are actually "fake" in the sense
 /// that they are detected and expanded inside of the implementation
 /// of `describe!`.
-pub fn describe(cx: &mut base::ExtCtxt, _: codemap::Span, tokens: &[ast::TokenTree]) -> Box<base::MacResult + 'static> {
+pub fn describe<'a>(cx: &'a mut base::ExtCtxt, _: codemap::Span,
+                name: ast::Ident, tokens: Vec<ast::TokenTree>) -> Box<base::MacResult + 'a> {
     // Parse a full DescribeState from the input, emitting errors if used incorrectly.
-    let state = parse_describe(&mut parse::tts_to_parser(cx.parse_sess(), tokens.to_vec(), cx.cfg()), cx);
+    let state = parse_describe(&mut parse::tts_to_parser(cx.parse_sess(), tokens, cx.cfg()), cx, Some(name));
 
     // Export the new module.
     base::MacItems::new(Some(create_describe_item(state, cx)).into_iter())
 }
 
 fn create_describe_item(state: DescribeState, cx: &mut base::ExtCtxt) -> P<ast::Item> {
-    // Get the name of the module from the state.
-    let name = cx.ident_of(state.name.clone().unwrap().replace(" ", "_").as_slice());
+    // Get the name of this mod.
+    let name = state.name.clone().unwrap();
 
     // Create subblocks from a full DescribeState
     let subblocks = create_subblocks(state, cx);
@@ -133,23 +134,29 @@ fn create_subblocks(state: DescribeState, cx: &mut base::ExtCtxt) -> Vec<P<ast::
     }).collect()
 }
 
-fn parse_describe(parser: &mut parse::parser::Parser, cx: &mut base::ExtCtxt) -> DescribeState {
+fn parse_describe(parser: &mut parse::parser::Parser, cx: &mut base::ExtCtxt, name: Option<ast::Ident>) -> DescribeState {
     let mut state = DescribeState {
         name: None, before: None, after: None,
         before_each: None, after_each: None, subblocks: vec![]
     };
 
-    // First parse the name of this describe block:
-    let (name, _) = parser.parse_str();
-    state.name = Some(name.get().to_string());
-
-    // Move past the opening {
-    if token::LBRACE != parser.bump_and_get() {
-        parser.fatal("Expected { after the name of a describe! block.");
-    }
+    state.name = match name {
+        // Top-level describe block.
+        Some(name) => Some(name),
+        // Nested describe block.
+        None => {
+            // Get the name of this describe block
+            let name = parser.parse_ident();
+            // Move past the opening {
+            if token::LBRACE != parser.bump_and_get() {
+                parser.fatal("Expected { after the name of a describe! block.");
+            }
+            Some(name)
+        }
+    };
 
     // Now parse all tests and subsections:
-    while parser.token != token::RBRACE {
+    while parser.token != token::RBRACE && parser.token != token::EOF {
         // Get the name of this block, must be either:
         //     - before_each
         //     - after_each
@@ -197,21 +204,21 @@ fn parse_describe(parser: &mut parse::parser::Parser, cx: &mut base::ExtCtxt) ->
 
             // Nested `describe!` block.
             DESCRIBE => {
-                // Skip over the ! and (
-                match (parser.bump_and_get(), parser.bump_and_get()) {
-                    (token::NOT, token::LPAREN) => {},
-                    (one, two) => parser.fatal(format!("Expected describe!( but found `describe{}{}`", one, two).as_slice())
+                // Skip over the !
+                match parser.bump_and_get() {
+                    token::NOT => {},
+                    other => parser.fatal(format!("Expected ! but found `{}`", other).as_slice())
                 };
 
                 // Parse this sublock, generate new item.
-                state.subblocks.push(DescribeBlock(create_describe_item(parse_describe(parser, cx), cx)));
+                state.subblocks.push(DescribeBlock(create_describe_item(parse_describe(parser, cx, None), cx)));
 
                 // Move past closing bracket and paren.
                 //
                 // This has to go in here because it two is EOF on the highest-level invocation.
-                match (parser.bump_and_get(), parser.bump_and_get()) {
-                    (token::RBRACE, token::RPAREN) => {},
-                    (one, two) => parser.fatal(format!("Expected }}) to close `describe!` but found: `{}{}`", one, two).as_slice())
+                match parser.bump_and_get() {
+                    token::RBRACE => {},
+                    other => parser.fatal(format!("Expected }} to close `describe!` but found: `{}`", other).as_slice())
                 }
             }
 

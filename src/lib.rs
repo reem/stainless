@@ -81,13 +81,14 @@ extern crate rustc;
 
 use self::describe::describe;
 use rustc::plugin;
+use syntax::parse::token;
 
 mod describe;
 
 #[plugin_registrar]
 #[doc(hidden)]
 pub fn plugin_registrar(reg: &mut plugin::Registry) {
-    reg.register_macro("describe", describe);
+    reg.register_syntax_extension(token::intern("describe"), syntax::ext::base::IdentTT(box describe, None));
 }
 
 
