@@ -1,5 +1,3 @@
-use syntax::util::small_vector::SmallVector;
-
 use syntax::{abi, ast, ast_util, codemap, parse};
 use syntax::ptr::P;
 use syntax::ext::base;
@@ -43,10 +41,15 @@ pub fn describe(cx: &mut base::ExtCtxt, _: codemap::Span, tokens: &[ast::TokenTr
 
     // Create tests from a full DescribeState
     let tests = create_tests(state, cx);
+
+    // Get a glob import of all items in scope to the module that `describe!` is called from.
     let super_glob = cx.view_use_glob(codemap::DUMMY_SP, ast::Inherited, vec![cx.ident_of("super")]);
 
+    // Generate the new module.
     let test_mod = cx.item_mod(codemap::DUMMY_SP, codemap::DUMMY_SP, name, vec![], vec![super_glob], tests);
-    box MacItems { items: vec![test_mod] }
+
+    // Export the new module.
+    base::MacItems::new(vec![test_mod].into_iter())
 }
 
 fn create_tests(state: DescribeState, cx: &mut base::ExtCtxt) -> Vec<P<ast::Item>> {
@@ -172,13 +175,5 @@ fn parse_describe(mut state: DescribeState, mut parser: parse::parser::Parser) -
     }
 
     state
-}
-
-struct MacItems { items: Vec<P<ast::Item>> }
-
-impl base::MacResult for MacItems {
-    fn make_items(self: Box<MacItems>) -> Option<SmallVector<P<ast::Item>>> {
-        Some(SmallVector::many(self.items.clone()))
-    }
 }
 
