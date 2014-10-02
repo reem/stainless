@@ -27,6 +27,68 @@ struct Test {
     block: P<ast::Block>
 }
 
+fn create_tests(state: DescribeState, cx: &mut base::ExtCtxt) -> Vec<P<ast::Item>> {
+    let name = state.name.unwrap().replace(" ", "_");
+
+    // FIXME(reem): Implement before and after.
+    let (_before, _after) = (state.before, state.after);
+
+    let (before_each, after_each) = (state.before_each, state.after_each);
+    let tests = state.tests;
+
+    let test_attribute = cx.attribute(codemap::DUMMY_SP,
+                                      cx.meta_word(codemap::DUMMY_SP, parse::token::InternedString::new("test")));
+
+    tests.into_iter().map(|Test { description, block }| {
+        let test_body = match (&before_each, &after_each) {
+            (&None, &None) => block,
+
+            (&Some(ref before), &None) => {
+                P(ast::Block {
+                    view_items: before.view_items + block.view_items,
+                    stmts: before.stmts + block.stmts,
+                    ..block.deref().clone()
+                })
+            },
+
+            (&None, &Some(ref after)) => {
+                P(ast::Block {
+                    view_items: block.view_items + after.view_items,
+                    stmts: block.stmts + after.stmts,
+                    ..block.deref().clone()
+                })
+            },
+
+            (&Some(ref before), &Some(ref after)) => {
+                P(ast::Block {
+                    view_items: before.view_items + block.view_items + after.view_items,
+                    stmts: before.stmts + block.stmts + after.stmts,
+                    ..block.deref().clone()
+                })
+            }
+        };
+
+        let mut test_name = name.clone();
+        test_name.push_str("_");
+        test_name.push_str(description.replace(" ", "_").as_slice());
+
+        P(ast::Item {
+            ident: cx.ident_of(test_name.as_slice()),
+            attrs: vec![test_attribute.clone()],
+            id: ast::DUMMY_NODE_ID,
+            node: ast::ItemFn(
+                cx.fn_decl(vec![], cx.ty_nil()),
+                ast::NormalFn,
+                abi::Rust,
+                ast_util::empty_generics(),
+                test_body
+            ),
+            vis: ast::Inherited,
+            span: codemap::DUMMY_SP
+        })
+    }).collect()
+}
+
 fn parse_describe(mut state: DescribeState, mut parser: parse::parser::Parser) -> DescribeState {
     // First parse the name of this describe block:
     let (name, _) = parser.parse_str();
