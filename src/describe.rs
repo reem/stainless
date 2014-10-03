@@ -54,6 +54,9 @@ fn create_describe_item(state: DescribeState, cx: &mut base::ExtCtxt) -> P<ast::
     let subblocks = create_subblocks(state, cx);
 
     // Get a glob import of all items in scope to the module that `describe!` is called from.
+    //
+    // This glob is `pub use super::*` so that nested `describe!` blocks (which will also contain
+    // this glob) will be able to see all the symbols.
     let super_glob = cx.view_use_glob(codemap::DUMMY_SP, ast::Public, vec![cx.ident_of("super")]);
 
     // Generate the new module.
