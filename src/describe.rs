@@ -10,6 +10,7 @@ static BEFORE:      &'static str = "before";
 static AFTER:       &'static str = "after";
 static IT:          &'static str = "it";
 static DESCRIBE:    &'static str = "describe";
+static FAILING:     &'static str = "failing";
 
 /// Defines the state of a `describe!` macro as it is parsing.
 struct DescribeState {
@@ -23,6 +24,7 @@ struct DescribeState {
 
 enum SubBlock {
     TestBlock(Test),
+    FailingTest(Test),
     DescribeBlock(P<ast::Item>)
 }
 
@@ -63,78 +65,94 @@ fn create_describe_item(state: DescribeState, sp: codemap::Span, cx: &mut base::
     cx.item_mod(sp, sp, name, vec![], vec![super_glob], subblocks)
 }
 
+impl SubBlock {
+    fn to_item(self, sp: codemap::Span, blocks: (&Option<P<ast::Block>>, &Option<P<ast::Block>>),
+               cx: &mut base::ExtCtxt) -> P<ast::Item> {
+        match self {
+            TestBlock(test) => test.to_item(false, sp, blocks, cx),
+            FailingTest(test) => test.to_item(true, sp, blocks, cx),
+            DescribeBlock(item) => item
+        }
+    }
+}
+
+impl Test {
+    fn to_item(self, failing: bool, sp: codemap::Span,
+               (before_each, after_each): (&Option<P<ast::Block>>, &Option<P<ast::Block>>),
+               cx: &mut base::ExtCtxt) -> P<ast::Item> {
+        let Test { description, block } = self;
+
+        // Create the #[test] attribute.
+        let test_attribute = cx.attribute(sp, cx.meta_word(sp, token::InternedString::new("test")));
+
+        // Create the #[should_fail] attribute.
+        let should_fail = cx.attribute(sp, cx.meta_word(sp, token::InternedString::new("should_fail")));
+
+        // Create the full test body by splicing in the statements and view items of the before and
+        // after blocks if they are present.
+        let test_body = match (before_each, after_each) {
+            (&None, &None) => block,
+
+            (&Some(ref before), &None) => {
+                P(ast::Block {
+                    view_items: before.view_items + block.view_items,
+                    stmts: before.stmts + block.stmts,
+                    ..block.deref().clone()
+                })
+            },
+
+            (&None, &Some(ref after)) => {
+                P(ast::Block {
+                    view_items: block.view_items + after.view_items,
+                    stmts: block.stmts + after.stmts,
+                    ..block.deref().clone()
+                })
+            },
+
+            (&Some(ref before), &Some(ref after)) => {
+                P(ast::Block {
+                    view_items: before.view_items + block.view_items + after.view_items,
+                    stmts: before.stmts + block.stmts + after.stmts,
+                    ..block.deref().clone()
+                })
+            }
+        };
+
+        // Create the final Item that represents the test.
+        P(ast::Item {
+            // Name it with a snake_case version of the description.
+            ident: cx.ident_of(description.replace(" ", "_").as_slice()),
+
+            // Add #[test] and possibly #[should_fail]
+            attrs: if failing { vec![test_attribute, should_fail] } else { vec![test_attribute] },
+            id: ast::DUMMY_NODE_ID,
+            node: ast::ItemFn(
+                // Takes no arguments and returns ()
+                cx.fn_decl(vec![], cx.ty_nil()),
+
+                // All the usual types.
+                ast::NormalFn,
+                abi::Rust,
+                ast_util::empty_generics(),
+
+                // Add the body of the function.
+                test_body
+            ),
+            // Inherited visibility (not pub)
+            vis: ast::Inherited,
+            span: sp
+        })
+    }
+}
+
 fn create_subblocks(state: DescribeState, sp: codemap::Span, cx: &mut base::ExtCtxt) -> Vec<P<ast::Item>> {
     // FIXME(reem): Implement before and after.
     let (_before, _after) = (state.before, state.after);
 
-    let (before_each, after_each) = (state.before_each, state.after_each);
+    let blocks = (&state.before_each, &state.after_each);
     let subblocks = state.subblocks;
 
-    // Create the #[test] attribute.
-    let test_attribute = cx.attribute(sp,
-                                      cx.meta_word(sp, token::InternedString::new("test")));
-
-    subblocks.into_iter().map(|block| {
-        match block {
-            TestBlock(Test { description, block }) => {
-                // Create the full test body by splicing in the statements and view items of the before and
-                // after blocks if they are present.
-                let test_body = match (&before_each, &after_each) {
-                    (&None, &None) => block,
-
-                    (&Some(ref before), &None) => {
-                        P(ast::Block {
-                            view_items: before.view_items + block.view_items,
-                            stmts: before.stmts + block.stmts,
-                            ..block.deref().clone()
-                        })
-                    },
-
-                    (&None, &Some(ref after)) => {
-                        P(ast::Block {
-                            view_items: block.view_items + after.view_items,
-                            stmts: block.stmts + after.stmts,
-                            ..block.deref().clone()
-                        })
-                    },
-
-                    (&Some(ref before), &Some(ref after)) => {
-                        P(ast::Block {
-                            view_items: before.view_items + block.view_items + after.view_items,
-                            stmts: before.stmts + block.stmts + after.stmts,
-                            ..block.deref().clone()
-                        })
-                    }
-                };
-
-                // Create the final Item that represents the test.
-                P(ast::Item {
-                    // Name it with a snake_case version of the description.
-                    ident: cx.ident_of(description.replace(" ", "_").as_slice()),
-
-                    // Add #[test]
-                    attrs: vec![test_attribute.clone()],
-                    id: ast::DUMMY_NODE_ID,
-                    node: ast::ItemFn(
-                        // Takes no arguments and returns ()
-                        cx.fn_decl(vec![], cx.ty_nil()),
-
-                        // All the usual types.
-                        ast::NormalFn,
-                        abi::Rust,
-                        ast_util::empty_generics(),
-
-                        // Add the body of the function.
-                        test_body
-                    ),
-                    // Inherited visibility (not pub)
-                    vis: ast::Inherited,
-                    span: sp
-                })
-            },
-            DescribeBlock(item) => item
-        }
-    }).collect()
+    subblocks.into_iter().map(|block| { block.to_item(sp, blocks, cx) }).collect()
 }
 
 fn parse_describe(parser: &mut parse::parser::Parser, sp: codemap::Span,
@@ -167,6 +185,7 @@ fn parse_describe(parser: &mut parse::parser::Parser, sp: codemap::Span,
         //     - before
         //     - after
         //     - it
+        //     - failing
         //     - describe!
         //
         // Any other top-level idents are not allowed.
@@ -193,18 +212,11 @@ fn parse_describe(parser: &mut parse::parser::Parser, sp: codemap::Span,
                 state.after = Some(parser.parse_block());
             },
 
-            IT => {
-                // Description of this `it` block.
-                let (description, _) = parser.parse_str();
+            // Regular `#[test]`.
+            IT => { state.subblocks.push(TestBlock(parse_test(parser))) },
 
-                state.subblocks.push(TestBlock(Test {
-                    // Get as a String
-                    description: description.get().to_string(),
-
-                    // The associated block
-                    block: parser.parse_block()
-                }));
-            },
+            // `#[should_fail]` test.
+            FAILING => { state.subblocks.push(FailingTest(parse_test(parser))) },
 
             // Nested `describe!` block.
             DESCRIBE => {
@@ -237,5 +249,18 @@ fn parse_describe(parser: &mut parse::parser::Parser, sp: codemap::Span,
     }
 
     state
+}
+
+fn parse_test(parser: &mut parse::parser::Parser) -> Test {
+    // Description of this test.
+    let (description, _) = parser.parse_str();
+
+    Test {
+        // Get as a String
+        description: description.get().to_string(),
+
+        // The associated block
+        block: parser.parse_block()
+    }
 }
 
