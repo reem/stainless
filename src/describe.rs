@@ -37,33 +37,33 @@ struct Test {
 /// All other macros in stainless are actually "fake" in the sense
 /// that they are detected and expanded inside of the implementation
 /// of `describe!`.
-pub fn describe<'a>(cx: &'a mut base::ExtCtxt, _: codemap::Span,
+pub fn describe<'a>(cx: &'a mut base::ExtCtxt, sp: codemap::Span,
                 name: ast::Ident, tokens: Vec<ast::TokenTree>) -> Box<base::MacResult + 'a> {
     // Parse a full DescribeState from the input, emitting errors if used incorrectly.
-    let state = parse_describe(&mut parse::tts_to_parser(cx.parse_sess(), tokens, cx.cfg()), cx, Some(name));
+    let state = parse_describe(&mut parse::tts_to_parser(cx.parse_sess(), tokens, cx.cfg()), sp, cx, Some(name));
 
     // Export the new module.
-    base::MacItems::new(Some(create_describe_item(state, cx)).into_iter())
+    base::MacItems::new(Some(create_describe_item(state, sp, cx)).into_iter())
 }
 
-fn create_describe_item(state: DescribeState, cx: &mut base::ExtCtxt) -> P<ast::Item> {
+fn create_describe_item(state: DescribeState, sp: codemap::Span, cx: &mut base::ExtCtxt) -> P<ast::Item> {
     // Get the name of this mod.
     let name = state.name.clone().unwrap();
 
     // Create subblocks from a full DescribeState
-    let subblocks = create_subblocks(state, cx);
+    let subblocks = create_subblocks(state, sp, cx);
 
     // Get a glob import of all items in scope to the module that `describe!` is called from.
     //
     // This glob is `pub use super::*` so that nested `describe!` blocks (which will also contain
     // this glob) will be able to see all the symbols.
-    let super_glob = cx.view_use_glob(codemap::DUMMY_SP, ast::Public, vec![cx.ident_of("super")]);
+    let super_glob = cx.view_use_glob(sp, ast::Public, vec![cx.ident_of("super")]);
 
     // Generate the new module.
-    cx.item_mod(codemap::DUMMY_SP, codemap::DUMMY_SP, name, vec![], vec![super_glob], subblocks)
+    cx.item_mod(sp, sp, name, vec![], vec![super_glob], subblocks)
 }
 
-fn create_subblocks(state: DescribeState, cx: &mut base::ExtCtxt) -> Vec<P<ast::Item>> {
+fn create_subblocks(state: DescribeState, sp: codemap::Span, cx: &mut base::ExtCtxt) -> Vec<P<ast::Item>> {
     // FIXME(reem): Implement before and after.
     let (_before, _after) = (state.before, state.after);
 
@@ -71,8 +71,8 @@ fn create_subblocks(state: DescribeState, cx: &mut base::ExtCtxt) -> Vec<P<ast::
     let subblocks = state.subblocks;
 
     // Create the #[test] attribute.
-    let test_attribute = cx.attribute(codemap::DUMMY_SP,
-                                      cx.meta_word(codemap::DUMMY_SP, token::InternedString::new("test")));
+    let test_attribute = cx.attribute(sp,
+                                      cx.meta_word(sp, token::InternedString::new("test")));
 
     subblocks.into_iter().map(|block| {
         match block {
@@ -129,7 +129,7 @@ fn create_subblocks(state: DescribeState, cx: &mut base::ExtCtxt) -> Vec<P<ast::
                     ),
                     // Inherited visibility (not pub)
                     vis: ast::Inherited,
-                    span: codemap::DUMMY_SP
+                    span: sp
                 })
             },
             DescribeBlock(item) => item
@@ -137,7 +137,8 @@ fn create_subblocks(state: DescribeState, cx: &mut base::ExtCtxt) -> Vec<P<ast::
     }).collect()
 }
 
-fn parse_describe(parser: &mut parse::parser::Parser, cx: &mut base::ExtCtxt, name: Option<ast::Ident>) -> DescribeState {
+fn parse_describe(parser: &mut parse::parser::Parser, sp: codemap::Span,
+                  cx: &mut base::ExtCtxt, name: Option<ast::Ident>) -> DescribeState {
     let mut state = DescribeState {
         name: None, before: None, after: None,
         before_each: None, after_each: None, subblocks: vec![]
@@ -214,7 +215,7 @@ fn parse_describe(parser: &mut parse::parser::Parser, cx: &mut base::ExtCtxt, na
                 };
 
                 // Parse this sublock, generate new item.
-                state.subblocks.push(DescribeBlock(create_describe_item(parse_describe(parser, cx, None), cx)));
+                state.subblocks.push(DescribeBlock(create_describe_item(parse_describe(parser, sp, cx, None), sp, cx)));
 
                 // Move past closing bracket and paren.
                 //
