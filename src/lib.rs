@@ -1,5 +1,5 @@
 #![license = "MIT"]
-#![feature(plugin_registrar)]
+#![feature(plugin_registrar, quote)]
 #![deny(warnings)]
 #![deny(missing_doc)]
 

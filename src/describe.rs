@@ -11,6 +11,7 @@ static AFTER:       &'static str = "after";
 static IT:          &'static str = "it";
 static DESCRIBE:    &'static str = "describe";
 static FAILING:     &'static str = "failing";
+static BENCH:       &'static str = "bench";
 
 /// Defines the state of a `describe!` macro as it is parsing.
 struct DescribeState {
@@ -22,14 +23,24 @@ struct DescribeState {
     subblocks: Vec<SubBlock>
 }
 
+/// Any supported subblock.
 enum SubBlock {
     TestBlock(Test),
     FailingTest(Test),
+    BenchBlock(Bench),
     DescribeBlock(P<ast::Item>)
 }
 
 /// A test as a description and associated block.
 struct Test {
+    description: String,
+    block: P<ast::Block>
+}
+
+/// A benchmark, represented as a description, an associated block,
+/// and an ident for the name of the Bencher argument.
+struct Bench {
+    bench: P<ast::Ident>,
     description: String,
     block: P<ast::Block>
 }
@@ -71,6 +82,7 @@ impl SubBlock {
         match self {
             TestBlock(test) => test.to_item(false, sp, blocks, cx),
             FailingTest(test) => test.to_item(true, sp, blocks, cx),
+            BenchBlock(bench) => bench.to_item(sp, cx),
             DescribeBlock(item) => item
         }
     }
@@ -137,6 +149,44 @@ impl Test {
 
                 // Add the body of the function.
                 test_body
+            ),
+            // Inherited visibility (not pub)
+            vis: ast::Inherited,
+            span: sp
+        })
+    }
+}
+
+impl Bench {
+    fn to_item(self, sp: codemap::Span, cx: &mut base::ExtCtxt) -> P<ast::Item> {
+        let Bench { bench, description, block } = self;
+
+        // Create the #[bench] attribute.
+        let bench_attribute = cx.attribute(sp, cx.meta_word(sp, token::InternedString::new("bench")));
+
+        // Create the final Item that represents the benchmark.
+        P(ast::Item {
+            // Name it with a snake_case version of the description.
+            ident: cx.ident_of(description.replace(" ", "_").as_slice()),
+
+            // Add #[test] and possibly #[should_fail]
+            attrs: vec![bench_attribute],
+            id: ast::DUMMY_NODE_ID,
+            node: ast::ItemFn(
+                // Takes one argument of &mut Bencher
+                cx.fn_decl(vec![ast::Arg {
+                    ty: quote_ty!(cx, &mut ::test::Bencher),
+                    pat: quote_pat!(cx, $bench),
+                    id: ast::DUMMY_NODE_ID
+                }], cx.ty_nil()),
+
+                // All the usual types.
+                ast::NormalFn,
+                abi::Rust,
+                ast_util::empty_generics(),
+
+                // Add the body of the function.
+                block
             ),
             // Inherited visibility (not pub)
             vis: ast::Inherited,
@@ -218,6 +268,9 @@ fn parse_describe(parser: &mut parse::parser::Parser, sp: codemap::Span,
             // `#[should_fail]` test.
             FAILING => { state.subblocks.push(FailingTest(parse_test(parser))) },
 
+            // #[bench] benchmark.
+            BENCH => { state.subblocks.push(BenchBlock(parse_bench(parser))) }
+
             // Nested `describe!` block.
             DESCRIBE => {
                 // Skip over the !
@@ -261,6 +314,25 @@ fn parse_test(parser: &mut parse::parser::Parser) -> Test {
 
         // The associated block
         block: parser.parse_block()
+    }
+}
+
+fn parse_bench(parser: &mut parse::parser::Parser) -> Bench {
+    // Description of this benchmark
+    let (description, _) = parser.parse_str();
+
+    let name = match (parser.bump_and_get(), parser.parse_ident(), parser.bump_and_get()) {
+        (token::LPAREN, ident, token::RPAREN) => { ident },
+
+        (one, two, three) => {
+            parser.fatal(format!("Expected `($ident)`, found {}{}{}", one, two, three).as_slice())
+        }
+    };
+
+    Bench {
+        description: description.get().to_string(),
+        block: parser.parse_block(),
+        bench: P(name)
     }
 }
 
