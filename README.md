@@ -4,7 +4,6 @@
 
 ## Example
 
-
 ```ignore
 describe! stainless {
     before_each {
@@ -59,14 +58,15 @@ boilerplate through `before_each` and `after_each`.
 
 Stainless currently supports 3 types of subblocks:
  - `before_each` and `after_each`,
- - `it`
+ - `it` and `failing`
  - nested `describe!`
 
 `before_each` and `after_each` allow you to group common initialization
 and teardown for a group of tests into a single block, shortening your
 tests.
 
-`it` generates tests which use `before_each` and `after_each`.
+`it` generates tests which use `before_each` and `after_each`. `failing`
+does the same, except the generated tests are marked with `#[should_fail]`.
 
 Nested `describe!` blocks allow you to better organize your tests into
 small units and gives you granular control over where `before_each` and
