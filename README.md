@@ -21,6 +21,10 @@ describe! stainless {
         stainless = false;
     }
 
+    bench "something simple" (bencher) {
+        bencher.iter(|| 2u * 2)
+    }
+
     describe! nesting {
         it "makes it simple to categorize tests" {
             // It even generates submodules!
@@ -41,6 +45,11 @@ mod stainless {
         stainless = false;
     }
 
+    #[bench]
+    fn something_simple(bencher: &mut test::Bencher) {
+        bencher.iter(|| 2u * 2)
+    }
+
     mod nesting {
         #[test]
         fn makes_it_simple_to_categorize_tests() {
@@ -56,9 +65,10 @@ Stainless exports the `describe!` syntax extension, which allows
 you to quickly generate complex testing hierarchies and reduce
 boilerplate through `before_each` and `after_each`.
 
-Stainless currently supports 3 types of subblocks:
+Stainless currently supports 4 types of subblocks:
  - `before_each` and `after_each`,
  - `it` and `failing`
+ - `bench`
  - nested `describe!`
 
 `before_each` and `after_each` allow you to group common initialization
@@ -67,6 +77,9 @@ tests.
 
 `it` generates tests which use `before_each` and `after_each`. `failing`
 does the same, except the generated tests are marked with `#[should_fail]`.
+
+`bench` allows you to generate benchmarks in the same fashion, though
+`before_each` and `after_each` blocks do not affect `bench` blocks.
 
 Nested `describe!` blocks allow you to better organize your tests into
 small units and gives you granular control over where `before_each` and
