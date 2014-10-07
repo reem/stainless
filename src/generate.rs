@@ -126,7 +126,7 @@ impl<'a> Generate<&'a DescribeState> for SubBlock {
         match self {
             ::describe::TestBlock(test) => test.generate(sp, cx, state),
             ::describe::BenchBlock(bench) => bench.generate(sp, cx, ()),
-            ::describe::DescribeBlock(item) => item
+            ::describe::DescribeBlock(item) => item.generate(sp, cx, ())
         }
     }
 }

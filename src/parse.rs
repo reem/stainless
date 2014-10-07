@@ -7,7 +7,6 @@ use syntax::parse::parser::Parser;
 
 use test::Test;
 use bench::Bench;
-use generate::Generate;
 use describe::{DescribeState, TestBlock, BenchBlock, DescribeBlock};
 
 /// Trait that means something can be parsed with a configuration.
@@ -79,9 +78,7 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
                 // Get the name of this describe block
                 let name = parser.parse_ident();
                 // Move past the opening {
-                if token::LBRACE != parser.bump_and_get() {
-                    parser.fatal("Expected { after the name of a describe! block.");
-                }
+                try(parser, token::LBRACE, "{ after the name of a describe! block");
                 Some(name)
             }
         };
@@ -95,6 +92,7 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
             //     - after
             //     - it
             //     - failing
+            //     - bench
             //     - describe!
             //
             // Any other top-level idents are not allowed.
@@ -132,37 +130,40 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
 
                 // Nested `describe!` block.
                 DESCRIBE => {
-                    // Skip over the !
-                    match parser.bump_and_get() {
-                        token::NOT => {},
-                        other => parser.fatal(format!("Expected ! but found `{}`", other).as_slice())
-                    };
+                    // Skip over the ! in describe!
+                    try(parser, token::NOT, "!");
 
-                    let sub_describe_state: DescribeState = Parse::parse(parser, (sp, &mut*cx, None));
-
-                    // Parse this sublock, generate new item.
-                    state.subblocks.push(DescribeBlock(sub_describe_state.generate(sp, &mut*cx, ())));
+                    // Parse this subblock, generate new item.
+                    state.subblocks.push(DescribeBlock(Parse::parse(parser, (sp, &mut*cx, None))));
 
                     // Move past closing bracket and paren.
                     //
-                    // This has to go in here because it two is EOF on the highest-level invocation.
-                    match parser.bump_and_get() {
-                        token::RBRACE => {},
-                        other => parser.fatal(format!("Expected }} to close `describe!` but found: `{}`", other).as_slice())
-                    }
+                    // This has to go in here because it is EOF on the highest-level invocation.
+                    try(parser, token::RBRACE, "}} to close `describe!`")
                 }
 
-                banned => {
-                    // Illegal block name.
-                    let span = parser.span;
-                    parser.span_fatal(span, format!("Expected one of: `{}`, but found: `{}`",
-                        format!("{}, {}, {}, {}, {}", BEFORE_EACH, AFTER_EACH, BEFORE, AFTER, IT).as_slice(),
-                        banned).as_slice());
-                }
+                otherwise => { illegal(parser, otherwise) }
             }
         }
 
         state
     }
+}
+
+fn try(parser: &mut Parser, token: token::Token, err: &str) {
+    let real = parser.bump_and_get();
+    if real != token {
+        parser.fatal(format!("Expected {}, but found `{}`", err, real).as_slice())
+    }
+}
+
+fn illegal(parser: &mut Parser, banned: &str) {
+    // Illegal block name.
+    let span = parser.span;
+    parser.span_fatal(span, format!("Expected one of: `{}`, but found: `{}`",
+        format!("{}, {}, {}, {}, {}, {}, {}, {}",
+                BEFORE_EACH, AFTER_EACH, BEFORE, AFTER,
+                IT, BENCH, FAILING, DESCRIBE).as_slice(),
+        banned).as_slice());
 }
 
