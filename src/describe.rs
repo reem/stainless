@@ -1,22 +1,11 @@
 use syntax::{ast, codemap, parse};
-use syntax::parse::token;
 use syntax::ptr::P;
 use syntax::ext::base;
-use syntax::ext::build::AstBuilder;
 
 use parse::Parse;
 use generate::Generate;
 use test::Test;
 use bench::Bench;
-
-static BEFORE_EACH: &'static str = "before_each";
-static AFTER_EACH:  &'static str = "after_each";
-static BEFORE:      &'static str = "before";
-static AFTER:       &'static str = "after";
-static IT:          &'static str = "it";
-static DESCRIBE:    &'static str = "describe";
-static FAILING:     &'static str = "failing";
-static BENCH:       &'static str = "bench";
 
 /// Defines the state of a `describe!` macro as it is parsing.
 pub struct DescribeState {
@@ -44,129 +33,9 @@ pub enum SubBlock {
 pub fn describe<'a>(cx: &'a mut base::ExtCtxt, sp: codemap::Span,
                 name: ast::Ident, tokens: Vec<ast::TokenTree>) -> Box<base::MacResult + 'a> {
     // Parse a full DescribeState from the input, emitting errors if used incorrectly.
-    let state = parse_describe(&mut parse::tts_to_parser(cx.parse_sess(), tokens, cx.cfg()), sp, cx, Some(name));
+    let state: DescribeState = Parse::parse(&mut parse::tts_to_parser(cx.parse_sess(), tokens, cx.cfg()), (sp, &mut*cx, Some(name)));
 
     // Export the new module.
-    base::MacItems::new(Some(create_describe_item(state, sp, cx)).into_iter())
-}
-
-fn create_describe_item(state: DescribeState, sp: codemap::Span, cx: &mut base::ExtCtxt) -> P<ast::Item> {
-    // Get the name of this mod.
-    let name = state.name.clone().unwrap();
-
-    // Create subblocks from a full DescribeState
-    let subblocks = create_subblocks(state, sp, cx);
-
-    // Get a glob import of all items in scope to the module that `describe!` is called from.
-    //
-    // This glob is `pub use super::*` so that nested `describe!` blocks (which will also contain
-    // this glob) will be able to see all the symbols.
-    let super_glob = cx.view_use_glob(sp, ast::Public, vec![cx.ident_of("super")]);
-
-    // Generate the new module.
-    cx.item_mod(sp, sp, name, vec![], vec![super_glob], subblocks)
-}
-
-fn create_subblocks(state: DescribeState, sp: codemap::Span, cx: &mut base::ExtCtxt) -> Vec<P<ast::Item>> {
-    state.subblocks.clone().into_iter().map(|block| { block.generate(sp, cx, &state) }).collect()
-}
-
-fn parse_describe(parser: &mut parse::parser::Parser, sp: codemap::Span,
-                  cx: &mut base::ExtCtxt, name: Option<ast::Ident>) -> DescribeState {
-    let mut state = DescribeState {
-        name: None, before: None, after: None,
-        before_each: None, after_each: None, subblocks: vec![]
-    };
-
-    state.name = match name {
-        // Top-level describe block.
-        Some(name) => Some(name),
-        // Nested describe block.
-        None => {
-            // Get the name of this describe block
-            let name = parser.parse_ident();
-            // Move past the opening {
-            if token::LBRACE != parser.bump_and_get() {
-                parser.fatal("Expected { after the name of a describe! block.");
-            }
-            Some(name)
-        }
-    };
-
-    // Now parse all tests and subsections:
-    while parser.token != token::RBRACE && parser.token != token::EOF {
-        // Get the name of this block, must be either:
-        //     - before_each
-        //     - after_each
-        //     - before
-        //     - after
-        //     - it
-        //     - failing
-        //     - describe!
-        //
-        // Any other top-level idents are not allowed.
-        let block_name = parser.parse_ident();
-
-        match block_name.as_str() {
-            BEFORE_EACH => {
-                if state.before_each.is_some() { parser.fatal("Only one `before_each` block is allowed per `describe!` block.") }
-                state.before_each = Some(parser.parse_block());
-            },
-
-            AFTER_EACH => {
-                if state.after_each.is_some() { parser.fatal("Only one `after_each` block is allowed per `describe!` block.") }
-                state.after_each = Some(parser.parse_block());
-            },
-
-            BEFORE => {
-                if state.before.is_some() { parser.fatal("Only one `before` block is allowed per `describe!` block.") }
-                state.before = Some(parser.parse_block());
-            },
-
-            AFTER => {
-                if state.after.is_some() { parser.fatal("Only one `after` block is allowed per `describe!` block.") }
-                state.after = Some(parser.parse_block());
-            },
-
-            // Regular `#[test]`.
-            IT => { state.subblocks.push(TestBlock(Parse::parse(parser, false))) },
-
-            // `#[should_fail]` test.
-            FAILING => { state.subblocks.push(TestBlock(Parse::parse(parser, true))) },
-
-            // #[bench] benchmark.
-            BENCH => { state.subblocks.push(BenchBlock(Parse::parse(parser, ()))) }
-
-            // Nested `describe!` block.
-            DESCRIBE => {
-                // Skip over the !
-                match parser.bump_and_get() {
-                    token::NOT => {},
-                    other => parser.fatal(format!("Expected ! but found `{}`", other).as_slice())
-                };
-
-                // Parse this sublock, generate new item.
-                state.subblocks.push(DescribeBlock(create_describe_item(parse_describe(parser, sp, cx, None), sp, cx)));
-
-                // Move past closing bracket and paren.
-                //
-                // This has to go in here because it two is EOF on the highest-level invocation.
-                match parser.bump_and_get() {
-                    token::RBRACE => {},
-                    other => parser.fatal(format!("Expected }} to close `describe!` but found: `{}`", other).as_slice())
-                }
-            }
-
-            banned => {
-                // Illegal block name.
-                let span = parser.span;
-                parser.span_fatal(span, format!("Expected one of: `{}`, but found: `{}`",
-                    format!("{}, {}, {}, {}, {}", BEFORE_EACH, AFTER_EACH, BEFORE, AFTER, IT).as_slice(),
-                    banned).as_slice());
-            }
-        }
-    }
-
-    state
+    base::MacItems::new(Some(state.generate(sp, cx, ())).into_iter())
 }
 

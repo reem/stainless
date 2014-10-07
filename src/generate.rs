@@ -131,3 +131,22 @@ impl<'a> Generate<&'a DescribeState> for SubBlock {
     }
 }
 
+impl Generate<()> for DescribeState {
+    fn generate(self, sp: codemap::Span, cx: &mut base::ExtCtxt, _: ()) -> P<ast::Item> {
+        // Get the name of this mod.
+        let name = self.name.clone().unwrap();
+
+        // Create subblocks from a full DescribeState
+        let subblocks = self.subblocks.clone().into_iter().map(|block| { block.generate(sp, cx, &self) }).collect();
+
+        // Get a glob import of all items in scope to the module that `describe!` is called from.
+        //
+        // This glob is `pub use super::*` so that nested `describe!` blocks (which will also contain
+        // this glob) will be able to see all the symbols.
+        let super_glob = cx.view_use_glob(sp, ast::Public, vec![cx.ident_of("super")]);
+
+        // Generate the new module.
+        cx.item_mod(sp, sp, name, vec![], vec![super_glob], subblocks)
+    }
+}
+
