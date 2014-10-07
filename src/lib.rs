@@ -84,6 +84,10 @@ use rustc::plugin;
 use syntax::parse::token;
 
 mod describe;
+mod parse;
+mod test;
+mod bench;
+mod generate;
 
 #[plugin_registrar]
 #[doc(hidden)]

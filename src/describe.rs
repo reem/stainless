@@ -1,8 +1,13 @@
-use syntax::{abi, ast, ast_util, codemap, parse};
+use syntax::{ast, codemap, parse};
 use syntax::parse::token;
 use syntax::ptr::P;
 use syntax::ext::base;
 use syntax::ext::build::AstBuilder;
+
+use parse::Parse;
+use generate::Generate;
+use test::Test;
+use bench::Bench;
 
 static BEFORE_EACH: &'static str = "before_each";
 static AFTER_EACH:  &'static str = "after_each";
@@ -14,35 +19,21 @@ static FAILING:     &'static str = "failing";
 static BENCH:       &'static str = "bench";
 
 /// Defines the state of a `describe!` macro as it is parsing.
-struct DescribeState {
-    name: Option<ast::Ident>,
-    before: Option<P<ast::Block>>,
-    after: Option<P<ast::Block>>,
-    before_each: Option<P<ast::Block>>,
-    after_each: Option<P<ast::Block>>,
-    subblocks: Vec<SubBlock>
+pub struct DescribeState {
+    pub name: Option<ast::Ident>,
+    pub before: Option<P<ast::Block>>,
+    pub after: Option<P<ast::Block>>,
+    pub before_each: Option<P<ast::Block>>,
+    pub after_each: Option<P<ast::Block>>,
+    pub subblocks: Vec<SubBlock>
 }
 
 /// Any supported subblock.
-enum SubBlock {
+#[deriving(Clone)]
+pub enum SubBlock {
     TestBlock(Test),
-    FailingTest(Test),
     BenchBlock(Bench),
     DescribeBlock(P<ast::Item>)
-}
-
-/// A test as a description and associated block.
-struct Test {
-    description: String,
-    block: P<ast::Block>
-}
-
-/// A benchmark, represented as a description, an associated block,
-/// and an ident for the name of the Bencher argument.
-struct Bench {
-    bench: P<ast::Ident>,
-    description: String,
-    block: P<ast::Block>
 }
 
 /// Defines the overarching `describe!` syntax extension.
@@ -76,133 +67,8 @@ fn create_describe_item(state: DescribeState, sp: codemap::Span, cx: &mut base::
     cx.item_mod(sp, sp, name, vec![], vec![super_glob], subblocks)
 }
 
-impl SubBlock {
-    fn to_item(self, sp: codemap::Span, blocks: (&Option<P<ast::Block>>, &Option<P<ast::Block>>),
-               cx: &mut base::ExtCtxt) -> P<ast::Item> {
-        match self {
-            TestBlock(test) => test.to_item(false, sp, blocks, cx),
-            FailingTest(test) => test.to_item(true, sp, blocks, cx),
-            BenchBlock(bench) => bench.to_item(sp, cx),
-            DescribeBlock(item) => item
-        }
-    }
-}
-
-impl Test {
-    fn to_item(self, failing: bool, sp: codemap::Span,
-               (before_each, after_each): (&Option<P<ast::Block>>, &Option<P<ast::Block>>),
-               cx: &mut base::ExtCtxt) -> P<ast::Item> {
-        let Test { description, block } = self;
-
-        // Create the #[test] attribute.
-        let test_attribute = cx.attribute(sp, cx.meta_word(sp, token::InternedString::new("test")));
-
-        // Create the #[should_fail] attribute.
-        let should_fail = cx.attribute(sp, cx.meta_word(sp, token::InternedString::new("should_fail")));
-
-        // Create the full test body by splicing in the statements and view items of the before and
-        // after blocks if they are present.
-        let test_body = match (before_each, after_each) {
-            (&None, &None) => block,
-
-            (&Some(ref before), &None) => {
-                P(ast::Block {
-                    view_items: before.view_items + block.view_items,
-                    stmts: before.stmts + block.stmts,
-                    ..block.deref().clone()
-                })
-            },
-
-            (&None, &Some(ref after)) => {
-                P(ast::Block {
-                    view_items: block.view_items + after.view_items,
-                    stmts: block.stmts + after.stmts,
-                    ..block.deref().clone()
-                })
-            },
-
-            (&Some(ref before), &Some(ref after)) => {
-                P(ast::Block {
-                    view_items: before.view_items + block.view_items + after.view_items,
-                    stmts: before.stmts + block.stmts + after.stmts,
-                    ..block.deref().clone()
-                })
-            }
-        };
-
-        // Create the final Item that represents the test.
-        P(ast::Item {
-            // Name it with a snake_case version of the description.
-            ident: cx.ident_of(description.replace(" ", "_").as_slice()),
-
-            // Add #[test] and possibly #[should_fail]
-            attrs: if failing { vec![test_attribute, should_fail] } else { vec![test_attribute] },
-            id: ast::DUMMY_NODE_ID,
-            node: ast::ItemFn(
-                // Takes no arguments and returns ()
-                cx.fn_decl(vec![], cx.ty_nil()),
-
-                // All the usual types.
-                ast::NormalFn,
-                abi::Rust,
-                ast_util::empty_generics(),
-
-                // Add the body of the function.
-                test_body
-            ),
-            // Inherited visibility (not pub)
-            vis: ast::Inherited,
-            span: sp
-        })
-    }
-}
-
-impl Bench {
-    fn to_item(self, sp: codemap::Span, cx: &mut base::ExtCtxt) -> P<ast::Item> {
-        let Bench { bench, description, block } = self;
-
-        // Create the #[bench] attribute.
-        let bench_attribute = cx.attribute(sp, cx.meta_word(sp, token::InternedString::new("bench")));
-
-        // Create the final Item that represents the benchmark.
-        P(ast::Item {
-            // Name it with a snake_case version of the description.
-            ident: cx.ident_of(description.replace(" ", "_").as_slice()),
-
-            // Add #[test] and possibly #[should_fail]
-            attrs: vec![bench_attribute],
-            id: ast::DUMMY_NODE_ID,
-            node: ast::ItemFn(
-                // Takes one argument of &mut Bencher
-                cx.fn_decl(vec![ast::Arg {
-                    ty: quote_ty!(cx, &mut ::test::Bencher),
-                    pat: quote_pat!(cx, $bench),
-                    id: ast::DUMMY_NODE_ID
-                }], cx.ty_nil()),
-
-                // All the usual types.
-                ast::NormalFn,
-                abi::Rust,
-                ast_util::empty_generics(),
-
-                // Add the body of the function.
-                block
-            ),
-            // Inherited visibility (not pub)
-            vis: ast::Inherited,
-            span: sp
-        })
-    }
-}
-
 fn create_subblocks(state: DescribeState, sp: codemap::Span, cx: &mut base::ExtCtxt) -> Vec<P<ast::Item>> {
-    // FIXME(reem): Implement before and after.
-    let (_before, _after) = (state.before, state.after);
-
-    let blocks = (&state.before_each, &state.after_each);
-    let subblocks = state.subblocks;
-
-    subblocks.into_iter().map(|block| { block.to_item(sp, blocks, cx) }).collect()
+    state.subblocks.clone().into_iter().map(|block| { block.generate(sp, cx, &state) }).collect()
 }
 
 fn parse_describe(parser: &mut parse::parser::Parser, sp: codemap::Span,
@@ -263,13 +129,13 @@ fn parse_describe(parser: &mut parse::parser::Parser, sp: codemap::Span,
             },
 
             // Regular `#[test]`.
-            IT => { state.subblocks.push(TestBlock(parse_test(parser))) },
+            IT => { state.subblocks.push(TestBlock(Parse::parse(parser, false))) },
 
             // `#[should_fail]` test.
-            FAILING => { state.subblocks.push(FailingTest(parse_test(parser))) },
+            FAILING => { state.subblocks.push(TestBlock(Parse::parse(parser, true))) },
 
             // #[bench] benchmark.
-            BENCH => { state.subblocks.push(BenchBlock(parse_bench(parser))) }
+            BENCH => { state.subblocks.push(BenchBlock(Parse::parse(parser, ()))) }
 
             // Nested `describe!` block.
             DESCRIBE => {
@@ -302,37 +168,5 @@ fn parse_describe(parser: &mut parse::parser::Parser, sp: codemap::Span,
     }
 
     state
-}
-
-fn parse_test(parser: &mut parse::parser::Parser) -> Test {
-    // Description of this test.
-    let (description, _) = parser.parse_str();
-
-    Test {
-        // Get as a String
-        description: description.get().to_string(),
-
-        // The associated block
-        block: parser.parse_block()
-    }
-}
-
-fn parse_bench(parser: &mut parse::parser::Parser) -> Bench {
-    // Description of this benchmark
-    let (description, _) = parser.parse_str();
-
-    let name = match (parser.bump_and_get(), parser.parse_ident(), parser.bump_and_get()) {
-        (token::LPAREN, ident, token::RPAREN) => { ident },
-
-        (one, two, three) => {
-            parser.fatal(format!("Expected `($ident)`, found {}{}{}", one, two, three).as_slice())
-        }
-    };
-
-    Bench {
-        description: description.get().to_string(),
-        block: parser.parse_block(),
-        bench: P(name)
-    }
 }
 
