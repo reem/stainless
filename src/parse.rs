@@ -53,14 +53,14 @@ impl Parse<()> for Bench {
     }
 }
 
-static BEFORE_EACH: &'static str = "before_each";
-static AFTER_EACH:  &'static str = "after_each";
-static BEFORE:      &'static str = "before";
-static AFTER:       &'static str = "after";
-static IT:          &'static str = "it";
-static DESCRIBE:    &'static str = "describe";
-static FAILING:     &'static str = "failing";
-static BENCH:       &'static str = "bench";
+const BEFORE_EACH: &'static str = "before_each";
+const AFTER_EACH:  &'static str = "after_each";
+const BEFORE:      &'static str = "before";
+const AFTER:       &'static str = "after";
+const IT:          &'static str = "it";
+const DESCRIBE:    &'static str = "describe";
+const FAILING:     &'static str = "failing";
+const BENCH:       &'static str = "bench";
 
 impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>)> for DescribeState {
     fn parse(parser: &mut Parser,
