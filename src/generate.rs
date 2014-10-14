@@ -26,6 +26,11 @@ impl<'a> Generate<&'a DescribeState> for Test {
         // Create the #[should_fail] attribute.
         let should_fail = cx.attribute(sp, cx.meta_word(sp, token::InternedString::new("should_fail")));
 
+        let non_snake_word = cx.meta_word(sp, token::InternedString::new("non_snake_case"));
+        let allow_non_snake_case = cx.meta_list(sp, token::InternedString::new("allow"),
+                                                vec![non_snake_word]);
+        let allow_non_snake_case = cx.attribute(sp, allow_non_snake_case);
+
         // Create the full test body by splicing in the statements and view items of the before and
         // after blocks if they are present.
         let test_body = match (&state.before_each, &state.after_each) {
@@ -56,13 +61,20 @@ impl<'a> Generate<&'a DescribeState> for Test {
             }
         };
 
+        // Constructing attributes:
+        // #[test] - no way without it
+        // #[allow(non_snake_case_attr)] as description may contain upper case
+        // #[should_fail] if specified
+        let mut attrs = vec![test_attribute, allow_non_snake_case];
+        if failing {
+            attrs.push(should_fail);
+        }
+
         // Create the final Item that represents the test.
         P(ast::Item {
             // Name it with a snake_case version of the description.
             ident: cx.ident_of(description.replace(" ", "_").as_slice()),
-
-            // Add #[test] and possibly #[should_fail]
-            attrs: if failing { vec![test_attribute, should_fail] } else { vec![test_attribute] },
+            attrs: attrs,
             id: ast::DUMMY_NODE_ID,
             node: ast::ItemFn(
                 // Takes no arguments and returns ()
