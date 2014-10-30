@@ -5,7 +5,7 @@ extern crate stainless;
 #[cfg(test)]
 mod test {
     pub fn test_helper<T: PartialEq>(x: T, y: T) {
-        if x != y { fail!("Not equal.") }
+        if x != y { panic!("Not equal.") }
     }
 
     describe! helpers {

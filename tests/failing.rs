@@ -4,7 +4,7 @@ extern crate stainless;
 
 describe! failing {
     failing "should fail" {
-        fail!("should still pass");
+        panic!("should still pass");
     }
 }
 

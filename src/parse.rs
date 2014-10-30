@@ -38,7 +38,7 @@ impl Parse<()> for Bench {
         let (description, _) = parser.parse_str();
 
         let name = match (parser.bump_and_get(), parser.parse_ident(), parser.bump_and_get()) {
-            (token::LPAREN, ident, token::RPAREN) => { ident },
+            (token::LParen, ident, token::RParen) => { ident },
 
             (one, two, three) => {
                 parser.fatal(format!("Expected `($ident)`, found {}{}{}", one, two, three).as_slice())
@@ -78,13 +78,13 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
                 // Get the name of this describe block
                 let name = parser.parse_ident();
                 // Move past the opening {
-                try(parser, token::LBRACE, "{ after the name of a describe! block");
+                try(parser, token::LBrace, "{ after the name of a describe! block");
                 Some(name)
             }
         };
 
         // Now parse all tests and subsections:
-        while parser.token != token::RBRACE && parser.token != token::EOF {
+        while parser.token != token::RBrace && parser.token != token::Eof {
             // Get the name of this block, must be either:
             //     - before_each
             //     - after_each
@@ -131,7 +131,7 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
                 // Nested `describe!` block.
                 DESCRIBE => {
                     // Skip over the ! in describe!
-                    try(parser, token::NOT, "!");
+                    try(parser, token::Not, "!");
 
                     // Parse this subblock, generate new item.
                     state.subblocks.push(DescribeBlock(Parse::parse(parser, (sp, &mut*cx, None))));
@@ -139,7 +139,7 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
                     // Move past closing bracket and paren.
                     //
                     // This has to go in here because it is EOF on the highest-level invocation.
-                    try(parser, token::RBRACE, "}} to close `describe!`")
+                    try(parser, token::RBrace, "}} to close `describe!`")
                 }
 
                 otherwise => { illegal(parser, otherwise) }
