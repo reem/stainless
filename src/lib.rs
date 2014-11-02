@@ -1,7 +1,6 @@
 #![license = "MIT"]
 #![feature(plugin_registrar, quote)]
-#![deny(warnings)]
-#![deny(missing_doc)]
+#![deny(missing_docs, warnings)]
 
 //! Stainless is a lightweight, flexible, unopinionated testing framework.
 //!
