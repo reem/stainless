@@ -78,7 +78,7 @@ impl<'a> Generate<&'a DescribeState> for Test {
             id: ast::DUMMY_NODE_ID,
             node: ast::ItemFn(
                 // Takes no arguments and returns ()
-                cx.fn_decl(vec![], cx.ty(sp, ast::Ty_::TyTup(vec![]))),
+                cx.fn_decl(vec![], cx.ty(sp, ast::TyTup(vec![]))),
 
                 // All the usual types.
                 ast::NormalFn,
@@ -116,7 +116,7 @@ impl Generate<()> for Bench {
                     ty: quote_ty!(cx, &mut ::test::Bencher),
                     pat: quote_pat!(cx, $bench),
                     id: ast::DUMMY_NODE_ID
-                }], cx.ty(sp, ast::Ty_::TyTup(vec![]))),
+                }], cx.ty(sp, ast::TyTup(vec![]))),
 
                 // All the usual types.
                 ast::NormalFn,
