@@ -45,9 +45,9 @@ pub struct DescribeState {
 /// Any supported subblock.
 #[deriving(Clone)]
 pub enum SubBlock {
-    TestBlock(Test),
-    BenchBlock(Bench),
-    DescribeBlock(DescribeState)
+    Test(Test),
+    Bench(Bench),
+    Describe(DescribeState)
 }
 
 /// Defines the overarching `describe!` syntax extension.

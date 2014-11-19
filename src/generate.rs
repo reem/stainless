@@ -78,7 +78,7 @@ impl<'a> Generate<&'a DescribeState> for Test {
             id: ast::DUMMY_NODE_ID,
             node: ast::ItemFn(
                 // Takes no arguments and returns ()
-                cx.fn_decl(vec![], cx.ty_nil()),
+                cx.fn_decl(vec![], cx.ty(sp, ast::Ty_::TyTup(vec![]))),
 
                 // All the usual types.
                 ast::NormalFn,
@@ -116,7 +116,7 @@ impl Generate<()> for Bench {
                     ty: quote_ty!(cx, &mut ::test::Bencher),
                     pat: quote_pat!(cx, $bench),
                     id: ast::DUMMY_NODE_ID
-                }], cx.ty_nil()),
+                }], cx.ty(sp, ast::Ty_::TyTup(vec![]))),
 
                 // All the usual types.
                 ast::NormalFn,
@@ -136,9 +136,9 @@ impl Generate<()> for Bench {
 impl<'a> Generate<&'a DescribeState> for SubBlock {
     fn generate(self, sp: codemap::Span, cx: &mut base::ExtCtxt, state: &'a DescribeState) -> P<ast::Item> {
         match self {
-            ::describe::TestBlock(test) => test.generate(sp, cx, state),
-            ::describe::BenchBlock(bench) => bench.generate(sp, cx, ()),
-            ::describe::DescribeBlock(item) => item.generate(sp, cx, ())
+            SubBlock::Test(test) => test.generate(sp, cx, state),
+            SubBlock::Bench(bench) => bench.generate(sp, cx, ()),
+            SubBlock::Describe(item) => item.generate(sp, cx, ())
         }
     }
 }

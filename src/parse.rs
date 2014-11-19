@@ -7,7 +7,7 @@ use syntax::parse::parser::Parser;
 
 use test::Test;
 use bench::Bench;
-use describe::{DescribeState, TestBlock, BenchBlock, DescribeBlock};
+use describe::{DescribeState, SubBlock};
 
 /// Trait that means something can be parsed with a configuration.
 pub trait Parse<Cfg> {
@@ -120,13 +120,13 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
                 },
 
                 // Regular `#[test]`.
-                IT => { state.subblocks.push(TestBlock(Parse::parse(parser, false))) },
+                IT => { state.subblocks.push(SubBlock::Test(Parse::parse(parser, false))) },
 
                 // `#[should_fail]` test.
-                FAILING => { state.subblocks.push(TestBlock(Parse::parse(parser, true))) },
+                FAILING => { state.subblocks.push(SubBlock::Test(Parse::parse(parser, true))) },
 
                 // #[bench] benchmark.
-                BENCH => { state.subblocks.push(BenchBlock(Parse::parse(parser, ()))) }
+                BENCH => { state.subblocks.push(SubBlock::Bench(Parse::parse(parser, ()))) }
 
                 // Nested `describe!` block.
                 DESCRIBE => {
@@ -134,7 +134,7 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
                     try(parser, token::Not, "!");
 
                     // Parse this subblock, generate new item.
-                    state.subblocks.push(DescribeBlock(Parse::parse(parser, (sp, &mut*cx, None))));
+                    state.subblocks.push(SubBlock::Describe(Parse::parse(parser, (sp, &mut*cx, None))));
 
                     // Move past closing bracket and paren.
                     //
