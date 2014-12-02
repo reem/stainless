@@ -56,16 +56,21 @@
 //! you to quickly generate complex testing hierarchies and reduce
 //! boilerplate through `before_each` and `after_each`.
 //!
-//! Stainless currently supports 3 types of subblocks:
+//! Stainless currently supports 4 types of subblocks:
 //!  - `before_each` and `after_each`,
-//!  - `it`
+//!  - `it` and `failing`
+//!  - `bench`
 //!  - nested `describe!`
 //!
 //! `before_each` and `after_each` allow you to group common initialization
 //! and teardown for a group of tests into a single block, shortening your
 //! tests.
 //!
-//! `it` generates tests which use `before_each` and `after_each`.
+//! `it` generates tests which use `before_each` and `after_each`. `failing`
+//! does the same, except the generated tests are marked with `#[should_fail]`.
+//!
+//! `bench` allows you to generate benchmarks in the same fashion, though
+//! `before_each` and `after_each` blocks do not affect `bench` blocks.
 //!
 //! Nested `describe!` blocks allow you to better organize your tests into
 //! small units and gives you granular control over where `before_each` and

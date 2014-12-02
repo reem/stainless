@@ -85,7 +85,7 @@ Nested `describe!` blocks allow you to better organize your tests into
 small units and gives you granular control over where `before_each` and
 `after_each` apply.
 
-Together, these 3 types of subblocks give you more flexibility and control
+Together, these 4 types of subblocks give you more flexibility and control
 than the built in testing infrastructure.
 
 ## License
