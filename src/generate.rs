@@ -113,7 +113,21 @@ impl Generate<()> for Bench {
             node: ast::ItemFn(
                 // Takes one argument of &mut Bencher
                 cx.fn_decl(vec![ast::Arg {
-                    ty: quote_ty!(cx, &mut ::test::Bencher),
+                    ty: ast::Ty {
+                        id: ast::DUMMY_ID,
+                        span: ast::DUMMY_SPAN,
+                        node: ast::TyRptr(None, ast::MutTy {
+                            mutbl: ast::MutMutable,
+                            ty: P(ast::Ty {
+                                id: ast::DUMMY_ID,
+                                span: ast::DUMMY_SPAN,
+                                node: ast::TyPath {
+                                    // what goes here?
+                                }
+                            })
+                        })
+                    },
+                    //    quote_ty!(cx, &mut ::test::Bencher),
                     pat: quote_pat!(cx, $bench),
                     id: ast::DUMMY_NODE_ID
                 }], cx.ty(sp, ast::TyTup(vec![]))),
