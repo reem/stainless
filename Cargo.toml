@@ -1,8 +1,11 @@
 [package]
 
 name = "stainless"
-version = "0.0.3"
+version = "0.0.4"
 authors = ["Jonathan Reem <jonathan.reem@gmail.com>"]
+description = "Organized, flexible testing framework."
+repository = "https://github.com/reem/stainless"
+license = "MIT"
 
 [lib]
 
