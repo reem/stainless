@@ -1,4 +1,3 @@
-#![license = "MIT"]
 #![feature(plugin_registrar, quote)]
 #![deny(missing_docs, warnings)]
 
