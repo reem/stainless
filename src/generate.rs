@@ -138,7 +138,31 @@ impl<'a> Generate<&'a DescribeState> for SubBlock {
         match self {
             SubBlock::Test(test) => test.generate(sp, cx, state),
             SubBlock::Bench(bench) => bench.generate(sp, cx, ()),
-            SubBlock::Describe(item) => item.generate(sp, cx, ())
+            SubBlock::Describe(mut item) => {
+                if let Some(ref parent) = state.before_each {
+                    item.before_each = match item.before_each {
+                        Some(ref now) => Some(P(ast::Block {
+                            view_items: parent.view_items + now.view_items,
+                            stmts: parent.stmts + now.stmts,
+                            ..now.deref().clone()
+                        })),
+                        None => Some(P(parent.deref().clone()))
+                    };
+                }
+
+                if let Some(ref parent) = state.after_each {
+                    item.after_each = match item.after_each {
+                        Some(ref now) => Some(P(ast::Block {
+                            view_items: now.view_items + parent.view_items,
+                            stmts: now.stmts + parent.stmts,
+                            ..now.deref().clone()
+                        })),
+                        None => Some(P(parent.deref().clone()))
+                    };
+                }
+
+                item.generate(sp, cx, ())
+            }
         }
     }
 }
