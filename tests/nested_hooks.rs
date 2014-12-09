@@ -8,7 +8,7 @@ describe! top_level {
     }
 
     after_each {
-        assert_eq!(foo, 20)
+        assert_eq!(foo, 4);
     }
 
     describe! nested {
