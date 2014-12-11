@@ -61,6 +61,6 @@ pub fn describe<'a>(cx: &'a mut base::ExtCtxt, sp: codemap::Span,
     let state: DescribeState = Parse::parse(&mut parse::tts_to_parser(cx.parse_sess(), tokens, cx.cfg()), (sp, &mut*cx, Some(name)));
 
     // Export the new module.
-    base::MacItems::new(Some(state.generate(sp, cx, ())).into_iter())
+    base::MacItems::new(Some(state.generate(sp, cx, None)).into_iter())
 }
 

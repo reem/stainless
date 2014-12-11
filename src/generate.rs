@@ -138,15 +138,40 @@ impl<'a> Generate<&'a DescribeState> for SubBlock {
         match self {
             SubBlock::Test(test) => test.generate(sp, cx, state),
             SubBlock::Bench(bench) => bench.generate(sp, cx, ()),
-            SubBlock::Describe(item) => item.generate(sp, cx, ())
+            SubBlock::Describe(item) => item.generate(sp, cx, Some(state))
         }
     }
 }
 
-impl Generate<()> for DescribeState {
-    fn generate(self, sp: codemap::Span, cx: &mut base::ExtCtxt, _: ()) -> P<ast::Item> {
+impl<'a> Generate<Option<&'a DescribeState>> for DescribeState {
+    fn generate(mut self, sp: codemap::Span, cx: &mut base::ExtCtxt,
+                state: Option<&'a DescribeState>) -> P<ast::Item> {
         // Get the name of this mod.
         let name = self.name.clone().unwrap();
+
+        if let Some(state) = state {
+            if let Some(ref parent) = state.before_each {
+                self.before_each = match self.before_each {
+                    Some(ref now) => Some(P(ast::Block {
+                        view_items: parent.view_items + now.view_items,
+                        stmts: parent.stmts + now.stmts,
+                        ..now.deref().clone()
+                    })),
+                    None => Some(P(parent.deref().clone()))
+                };
+            }
+
+            if let Some(ref parent) = state.after_each {
+                self.after_each = match self.after_each {
+                    Some(ref now) => Some(P(ast::Block {
+                        view_items: now.view_items + parent.view_items,
+                        stmts: now.stmts + parent.stmts,
+                        ..now.deref().clone()
+                    })),
+                    None => Some(P(parent.deref().clone()))
+                };
+            }
+        }
 
         // Create subblocks from a full DescribeState
         let subblocks = self.subblocks.clone().into_iter().map(|block| { block.generate(sp, cx, &self) }).collect();
