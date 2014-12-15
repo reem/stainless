@@ -81,7 +81,7 @@ impl<'a> Generate<&'a DescribeState> for Test {
                 cx.fn_decl(vec![], cx.ty(sp, ast::TyTup(vec![]))),
 
                 // All the usual types.
-                ast::NormalFn,
+                ast::Unsafety::Normal,
                 abi::Rust,
                 ast_util::empty_generics(),
 
@@ -119,7 +119,7 @@ impl Generate<()> for Bench {
                 }], cx.ty(sp, ast::TyTup(vec![]))),
 
                 // All the usual types.
-                ast::NormalFn,
+                ast::Unsafety::Normal,
                 abi::Rust,
                 ast_util::empty_generics(),
 
