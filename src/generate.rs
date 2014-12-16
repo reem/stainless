@@ -38,24 +38,24 @@ impl<'a> Generate<&'a DescribeState> for Test {
 
             (&Some(ref before), &None) => {
                 P(ast::Block {
-                    view_items: before.view_items + block.view_items,
-                    stmts: before.stmts + block.stmts,
+                    view_items: before.view_items.clone() + &*block.view_items,
+                    stmts: before.stmts.clone() + &*block.stmts,
                     ..block.deref().clone()
                 })
             },
 
             (&None, &Some(ref after)) => {
                 P(ast::Block {
-                    view_items: block.view_items + after.view_items,
-                    stmts: block.stmts + after.stmts,
+                    view_items: block.view_items.clone() + &*after.view_items,
+                    stmts: block.stmts.clone() + &*after.stmts,
                     ..block.deref().clone()
                 })
             },
 
             (&Some(ref before), &Some(ref after)) => {
                 P(ast::Block {
-                    view_items: before.view_items + block.view_items + after.view_items,
-                    stmts: before.stmts + block.stmts + after.stmts,
+                    view_items: before.view_items.clone() + &*block.view_items + &*after.view_items,
+                    stmts: before.stmts.clone() + &*block.stmts + &*after.stmts,
                     ..block.deref().clone()
                 })
             }
@@ -153,8 +153,8 @@ impl<'a> Generate<Option<&'a DescribeState>> for DescribeState {
             if let Some(ref parent) = state.before_each {
                 self.before_each = match self.before_each {
                     Some(ref now) => Some(P(ast::Block {
-                        view_items: parent.view_items + now.view_items,
-                        stmts: parent.stmts + now.stmts,
+                        view_items: parent.view_items.clone() + &*now.view_items,
+                        stmts: parent.stmts.clone() + &*now.stmts,
                         ..now.deref().clone()
                     })),
                     None => Some(P(parent.deref().clone()))
@@ -164,8 +164,8 @@ impl<'a> Generate<Option<&'a DescribeState>> for DescribeState {
             if let Some(ref parent) = state.after_each {
                 self.after_each = match self.after_each {
                     Some(ref now) => Some(P(ast::Block {
-                        view_items: now.view_items + parent.view_items,
-                        stmts: now.stmts + parent.stmts,
+                        view_items: now.view_items.clone() + &*parent.view_items,
+                        stmts: now.stmts.clone() + &*parent.stmts,
                         ..now.deref().clone()
                     })),
                     None => Some(P(parent.deref().clone()))
