@@ -32,7 +32,7 @@ use test::Test;
 use bench::Bench;
 
 /// Defines the state of a `describe!` macro as it is parsing.
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct DescribeState {
     pub name: Option<ast::Ident>,
     pub before: Option<P<ast::Block>>,
@@ -43,7 +43,7 @@ pub struct DescribeState {
 }
 
 /// Any supported subblock.
-#[deriving(Clone)]
+#[derive(Clone)]
 pub enum SubBlock {
     Test(Test),
     Bench(Bench),
