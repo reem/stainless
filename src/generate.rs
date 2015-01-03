@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use syntax::{ast, abi, ast_util, codemap};
 use syntax::ptr::P;
 use syntax::ext::base;
