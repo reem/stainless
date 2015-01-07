@@ -1,5 +1,5 @@
-#![feature(phase)]
-#[phase(plugin, link)]
+#![feature(plugin)]
+#[plugin]
 extern crate stainless;
 
 pub struct X(int);
