@@ -1,3 +1,4 @@
+#![allow(unstable)]
 #![feature(plugin_registrar, quote)]
 #![deny(missing_docs, warnings)]
 
@@ -95,7 +96,10 @@ mod generate;
 #[plugin_registrar]
 #[doc(hidden)]
 pub fn plugin_registrar(reg: &mut plugin::Registry) {
-    reg.register_syntax_extension(token::intern("describe"), syntax::ext::base::IdentTT(box describe, None));
+    reg.register_syntax_extension(
+        token::intern("describe"),
+        syntax::ext::base::IdentTT(Box::new(describe), None)
+    );
 }
 
 
