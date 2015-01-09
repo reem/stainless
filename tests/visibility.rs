@@ -1,8 +1,10 @@
+#![allow(unstable)]
 #![feature(plugin)]
-#[plugin]
-extern crate stainless;
 
-pub struct X(int);
+#[plugin] extern crate stainless;
+
+#[derive(Copy)]
+pub struct X(i32);
 
 #[cfg(test)]
 mod test {

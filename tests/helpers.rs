@@ -1,6 +1,7 @@
+#![allow(unstable)]
 #![feature(plugin)]
-#[plugin]
-extern crate stainless;
+
+#[plugin] extern crate stainless;
 
 #[cfg(test)]
 mod test {
@@ -10,7 +11,7 @@ mod test {
 
     describe! helpers {
         it "should be able to use helpers" {
-            test_helper(7u, 7);
+            test_helper(7, 7);
         }
     }
 }

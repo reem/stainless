@@ -1,10 +1,12 @@
+#![allow(unstable)]
 #![feature(plugin)]
-#[plugin]
-extern crate stainless;
+
+#[plugin] extern crate stainless;
 
 describe! addition {
     before_each {
-        let x = 5u; let y = 6u;
+        let x = 5;
+        let y = 6;
     }
 
     it "should add 5 and 6 together" {

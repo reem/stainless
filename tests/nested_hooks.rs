@@ -1,10 +1,11 @@
+#![allow(unstable)]
 #![feature(plugin)]
-#[plugin]
-extern crate stainless;
+
+#[plugin] extern crate stainless;
 
 describe! top_level {
     before_each {
-        let mut foo = 1u;
+        let mut foo = 1;
     }
 
     after_each {
