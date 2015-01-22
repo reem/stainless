@@ -80,8 +80,11 @@ impl<'a> Generate<&'a DescribeState> for Test {
             id: ast::DUMMY_NODE_ID,
             node: ast::ItemFn(
                 // Takes no arguments and returns ()
-                cx.fn_decl(vec![], cx.ty(sp, ast::TyTup(vec![]))),
-
+                P(ast::FnDecl {
+                    inputs: vec![],
+                    output: ast::DefaultReturn(sp),
+                    variadic: false
+                }),
                 // All the usual types.
                 ast::Unsafety::Normal,
                 abi::Rust,
@@ -114,11 +117,15 @@ impl Generate<()> for Bench {
             id: ast::DUMMY_NODE_ID,
             node: ast::ItemFn(
                 // Takes one argument of &mut Bencher
-                cx.fn_decl(vec![ast::Arg {
-                    ty: quote_ty!(cx, &mut ::test::Bencher),
-                    pat: quote_pat!(cx, $bench),
-                    id: ast::DUMMY_NODE_ID
-                }], cx.ty(sp, ast::TyTup(vec![]))),
+                P(ast::FnDecl {
+                    inputs: vec![ast::Arg {
+                        ty: quote_ty!(cx, &mut ::test::Bencher),
+                        pat: quote_pat!(cx, $bench),
+                        id: ast::DUMMY_NODE_ID
+                    }],
+                    output: ast::DefaultReturn(sp),
+                    variadic: false
+                }),
 
                 // All the usual types.
                 ast::Unsafety::Normal,
