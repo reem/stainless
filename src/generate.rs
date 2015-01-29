@@ -40,7 +40,6 @@ impl<'a> Generate<&'a DescribeState> for Test {
 
             (&Some(ref before), &None) => {
                 P(ast::Block {
-                    view_items: before.view_items.clone() + &*block.view_items,
                     stmts: before.stmts.clone() + &*block.stmts,
                     ..block.deref().clone()
                 })
@@ -48,7 +47,6 @@ impl<'a> Generate<&'a DescribeState> for Test {
 
             (&None, &Some(ref after)) => {
                 P(ast::Block {
-                    view_items: block.view_items.clone() + &*after.view_items,
                     stmts: block.stmts.clone() + &*after.stmts,
                     ..block.deref().clone()
                 })
@@ -56,7 +54,6 @@ impl<'a> Generate<&'a DescribeState> for Test {
 
             (&Some(ref before), &Some(ref after)) => {
                 P(ast::Block {
-                    view_items: before.view_items.clone() + &*block.view_items + &*after.view_items,
                     stmts: before.stmts.clone() + &*block.stmts + &*after.stmts,
                     ..block.deref().clone()
                 })
@@ -162,7 +159,6 @@ impl<'a> Generate<Option<&'a DescribeState>> for DescribeState {
             if let Some(ref parent) = state.before_each {
                 self.before_each = match self.before_each {
                     Some(ref now) => Some(P(ast::Block {
-                        view_items: parent.view_items.clone() + &*now.view_items,
                         stmts: parent.stmts.clone() + &*now.stmts,
                         ..now.deref().clone()
                     })),
@@ -173,7 +169,6 @@ impl<'a> Generate<Option<&'a DescribeState>> for DescribeState {
             if let Some(ref parent) = state.after_each {
                 self.after_each = match self.after_each {
                     Some(ref now) => Some(P(ast::Block {
-                        view_items: now.view_items.clone() + &*parent.view_items,
                         stmts: now.stmts.clone() + &*parent.stmts,
                         ..now.deref().clone()
                     })),
@@ -182,17 +177,20 @@ impl<'a> Generate<Option<&'a DescribeState>> for DescribeState {
             }
         }
 
-        // Create subblocks from a full DescribeState
-        let subblocks = self.subblocks.clone().into_iter().map(|block| { block.generate(sp, cx, &self) }).collect();
-
         // Get a glob import of all items in scope to the module that `describe!` is called from.
         //
         // This glob is `pub use super::*` so that nested `describe!` blocks (which will also contain
         // this glob) will be able to see all the symbols.
-        let super_glob = cx.view_use_glob(sp, ast::Public, vec![cx.ident_of("super")]);
+        let super_glob = cx.item_use_glob(sp, ast::Public, vec![cx.ident_of("super")]);
+        let mut items = vec![super_glob];
+
+        // Create subblocks from a full DescribeState
+        items.extend(self.subblocks.clone().into_iter().map(|block| {
+            block.generate(sp, cx, &self)
+        }));
 
         // Generate the new module.
-        cx.item_mod(sp, sp, name, vec![], vec![super_glob], subblocks)
+        cx.item_mod(sp, sp, name, vec![], items)
     }
 }
 
