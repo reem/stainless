@@ -1,5 +1,4 @@
-#![allow(unstable)]
-#![feature(plugin_registrar, quote)]
+#![feature(plugin_registrar, quote, rustc_private, core, collections)]
 #![deny(missing_docs, warnings)]
 
 //! Stainless is a lightweight, flexible, unopinionated testing framework.
