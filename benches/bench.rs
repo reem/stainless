@@ -1,5 +1,4 @@
-#![allow(unstable)]
-#![feature(plugin)]
+#![feature(plugin, test)]
 #[plugin]
 extern crate stainless;
 extern crate test;

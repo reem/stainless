@@ -1,4 +1,3 @@
-#![allow(unstable)]
 #![feature(plugin)]
 
 #[plugin] extern crate stainless;
