@@ -22,7 +22,7 @@ impl Parse<bool> for Test {
 
         Test {
             // Get as a String
-            description: description.get().to_string(),
+            description: description.to_string(),
 
             // The associated block
             block: parser.parse_block(),
@@ -46,7 +46,7 @@ impl Parse<()> for Bench {
         };
 
         Bench {
-            description: description.get().to_string(),
+            description: description.to_string(),
             block: parser.parse_block(),
             bench: P(name)
         }
