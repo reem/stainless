@@ -1,6 +1,7 @@
 #![feature(plugin)]
+#![plugin(stainless)]
 
-#[plugin] extern crate stainless;
+extern crate stainless;
 
 #[cfg(test)]
 mod test {

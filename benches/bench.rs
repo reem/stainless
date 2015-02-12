@@ -1,5 +1,6 @@
 #![feature(plugin, test)]
-#[plugin]
+#![plugin(stainless)]
+
 extern crate stainless;
 extern crate test;
 

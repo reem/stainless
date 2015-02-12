@@ -1,6 +1,7 @@
 #![feature(plugin)]
+#![plugin(stainless)]
 
-#[plugin] extern crate stainless;
+extern crate stainless;
 
 describe! top_level {
     it "should be less specific" {

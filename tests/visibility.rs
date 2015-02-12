@@ -1,6 +1,7 @@
 #![feature(plugin)]
+#![plugin(stainless)]
 
-#[plugin] extern crate stainless;
+extern crate stainless;
 
 #[derive(Copy)]
 pub struct X(i32);
