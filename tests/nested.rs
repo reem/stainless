@@ -1,8 +1,6 @@
 #![feature(plugin)]
 #![plugin(stainless)]
 
-extern crate stainless;
-
 describe! top_level {
     it "should be less specific" {
         assert_eq!(1, 1);

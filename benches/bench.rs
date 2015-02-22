@@ -1,7 +1,6 @@
 #![feature(plugin, test)]
 #![plugin(stainless)]
 
-extern crate stainless;
 extern crate test;
 
 describe! benchmarking {
