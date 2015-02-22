@@ -1,8 +1,6 @@
 #![feature(plugin)]
 #![plugin(stainless)]
 
-extern crate stainless;
-
 describe! top_level {
     before_each {
         let mut foo = 1;

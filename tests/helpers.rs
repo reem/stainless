@@ -1,8 +1,6 @@
 #![feature(plugin)]
 #![plugin(stainless)]
 
-extern crate stainless;
-
 #[cfg(test)]
 mod test {
     pub fn test_helper<T: PartialEq>(x: T, y: T) {

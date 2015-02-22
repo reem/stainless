@@ -1,8 +1,6 @@
 #![feature(plugin)]
 #![plugin(stainless)]
 
-extern crate stainless;
-
 describe! addition {
     before_each {
         let x = 5;
