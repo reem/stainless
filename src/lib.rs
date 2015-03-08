@@ -97,7 +97,7 @@ mod generate;
 pub fn plugin_registrar(reg: &mut plugin::Registry) {
     reg.register_syntax_extension(
         token::intern("describe"),
-        syntax::ext::base::IdentTT(Box::new(describe), None)
+        syntax::ext::base::IdentTT(Box::new(describe), None, false)
     );
 }
 
