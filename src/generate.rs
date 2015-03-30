@@ -25,8 +25,8 @@ impl<'a> Generate<&'a DescribeState> for Test {
         // Create the #[test] attribute.
         let test_attribute = cx.attribute(sp, cx.meta_word(sp, token::InternedString::new("test")));
 
-        // Create the #[should_fail] attribute.
-        let should_fail = cx.attribute(sp, cx.meta_word(sp, token::InternedString::new("should_fail")));
+        // Create the #[should_panic] attribute.
+        let should_panic = cx.attribute(sp, cx.meta_word(sp, token::InternedString::new("should_panic")));
 
         let non_snake_word = cx.meta_word(sp, token::InternedString::new("non_snake_case"));
         let allow_non_snake_case = cx.meta_list(sp, token::InternedString::new("allow"),
@@ -63,16 +63,16 @@ impl<'a> Generate<&'a DescribeState> for Test {
         // Constructing attributes:
         // #[test] - no way without it
         // #[allow(non_snake_case_attr)] as description may contain upper case
-        // #[should_fail] if specified
+        // #[should_panic] if specified
         let mut attrs = vec![test_attribute, allow_non_snake_case];
         if failing {
-            attrs.push(should_fail);
+            attrs.push(should_panic);
         }
 
         // Create the final Item that represents the test.
         P(ast::Item {
             // Name it with a snake_case version of the description.
-            ident: cx.ident_of(description.replace(" ", "_").as_slice()),
+            ident: cx.ident_of(&description.replace(" ", "_")),
             attrs: attrs,
             id: ast::DUMMY_NODE_ID,
             node: ast::ItemFn(
@@ -107,9 +107,9 @@ impl Generate<()> for Bench {
         // Create the final Item that represents the benchmark.
         P(ast::Item {
             // Name it with a snake_case version of the description.
-            ident: cx.ident_of(description.replace(" ", "_").as_slice()),
+            ident: cx.ident_of(&description.replace(" ", "_")),
 
-            // Add #[test] and possibly #[should_fail]
+            // Add #[test] and possibly #[should_panic]
             attrs: vec![bench_attribute],
             id: ast::DUMMY_NODE_ID,
             node: ast::ItemFn(

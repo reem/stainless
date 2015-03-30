@@ -1,4 +1,4 @@
-#![feature(plugin_registrar, quote, rustc_private, core)]
+#![feature(plugin_registrar, quote, rustc_private)]
 #![deny(missing_docs, warnings)]
 
 //! Stainless is a lightweight, flexible, unopinionated testing framework.
@@ -25,7 +25,7 @@
 //!     describe! nesting {
 //!         it "makes it simple to categorize tests" {
 //!             // It even generates submodules!
-//!             assert_eq!(2u, 2u);
+//!             assert_eq!(2, 2);
 //!         }
 //!     }
 //! }
@@ -45,7 +45,7 @@
 //!     mod nesting {
 //!         #[test]
 //!         fn makes_it_simple_to_categorize_tests() {
-//!             assert_eq!(2u, 2u);
+//!             assert_eq!(2, 2);
 //!         }
 //!     }
 //! }
@@ -66,7 +66,7 @@
 //! tests.
 //!
 //! `it` generates tests which use `before_each` and `after_each`. `failing`
-//! does the same, except the generated tests are marked with `#[should_fail]`.
+//! does the same, except the generated tests are marked with `#[should_panic]`.
 //!
 //! `bench` allows you to generate benchmarks in the same fashion, though
 //! `before_each` and `after_each` blocks do not affect `bench` blocks.

@@ -41,7 +41,7 @@ impl Parse<()> for Bench {
             (token::OpenDelim(token::Paren), ident, token::CloseDelim(token::Paren)) => { ident },
 
             (one, two, three) => {
-                parser.fatal(format!("Expected `($ident)`, found {:?}{:?}{:?}", one, two, three).as_slice())
+                parser.fatal(&format!("Expected `($ident)`, found {:?}{:?}{:?}", one, two, three))
             }
         };
 
@@ -122,7 +122,7 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
                 // Regular `#[test]`.
                 IT => { state.subblocks.push(SubBlock::Test(Parse::parse(parser, false))) },
 
-                // `#[should_fail]` test.
+                // `#[should_panic]` test.
                 FAILING => { state.subblocks.push(SubBlock::Test(Parse::parse(parser, true))) },
 
                 // #[bench] benchmark.
@@ -153,17 +153,17 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
 fn try(parser: &mut Parser, token: token::Token, err: &str) {
     let real = parser.bump_and_get();
     if real != token {
-        parser.fatal(format!("Expected {}, but found `{:?}`", err, real).as_slice())
+        parser.fatal(&format!("Expected {}, but found `{:?}`", err, real))
     }
 }
 
 fn illegal(parser: &mut Parser, banned: &str) {
     // Illegal block name.
     let span = parser.span;
-    parser.span_fatal(span, format!("Expected one of: `{}`, but found: `{}`",
+    parser.span_fatal(span, &format!("Expected one of: `{}`, but found: `{}`",
         format!("{}, {}, {}, {}, {}, {}, {}, {}",
                 BEFORE_EACH, AFTER_EACH, BEFORE, AFTER,
-                IT, BENCH, FAILING, DESCRIBE).as_slice(),
-        banned).as_slice());
+                IT, BENCH, FAILING, DESCRIBE),
+        banned));
 }
 

@@ -22,13 +22,13 @@ describe! stainless {
     }
 
     bench "something simple" (bencher) {
-        bencher.iter(|| 2u * 2)
+        bencher.iter(|| 2 * 2)
     }
 
     describe! nesting {
         it "makes it simple to categorize tests" {
             // It even generates submodules!
-            assert_eq!(2u, 2u);
+            assert_eq!(2, 2);
         }
     }
 }
@@ -47,13 +47,13 @@ mod stainless {
 
     #[bench]
     fn something_simple(bencher: &mut test::Bencher) {
-        bencher.iter(|| 2u * 2)
+        bencher.iter(|| 2 * 2)
     }
 
     mod nesting {
         #[test]
         fn makes_it_simple_to_categorize_tests() {
-            assert_eq!(2u, 2u);
+            assert_eq!(2, 2);
         }
     }
 }
@@ -76,7 +76,7 @@ and teardown for a group of tests into a single block, shortening your
 tests.
 
 `it` generates tests which use `before_each` and `after_each`. `failing`
-does the same, except the generated tests are marked with `#[should_fail]`.
+does the same, except the generated tests are marked with `#[should_panic]`.
 
 `bench` allows you to generate benchmarks in the same fashion, though
 `before_each` and `after_each` blocks do not affect `bench` blocks.
