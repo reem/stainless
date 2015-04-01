@@ -54,10 +54,13 @@ impl Parse<()> for Bench {
 }
 
 const BEFORE_EACH: &'static str = "before_each";
+const GIVEN:       &'static str = "given";
 const AFTER_EACH:  &'static str = "after_each";
+const THEN:        &'static str = "then";
 const BEFORE:      &'static str = "before";
 const AFTER:       &'static str = "after";
 const IT:          &'static str = "it";
+const WHEN:        &'static str = "when";
 const DESCRIBE:    &'static str = "describe";
 const FAILING:     &'static str = "failing";
 const BENCH:       &'static str = "bench";
@@ -99,12 +102,12 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
             let block_name = parser.parse_ident();
 
             match block_name.as_str() {
-                BEFORE_EACH => {
+                BEFORE_EACH | GIVEN => {
                     if state.before_each.is_some() { parser.fatal("Only one `before_each` block is allowed per `describe!` block.") }
                     state.before_each = Some(parser.parse_block());
                 },
 
-                AFTER_EACH => {
+                AFTER_EACH | THEN => {
                     if state.after_each.is_some() { parser.fatal("Only one `after_each` block is allowed per `describe!` block.") }
                     state.after_each = Some(parser.parse_block());
                 },
@@ -120,7 +123,7 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
                 },
 
                 // Regular `#[test]`.
-                IT => { state.subblocks.push(SubBlock::Test(Parse::parse(parser, false))) },
+                IT | WHEN => { state.subblocks.push(SubBlock::Test(Parse::parse(parser, false))) },
 
                 // `#[should_panic]` test.
                 FAILING => { state.subblocks.push(SubBlock::Test(Parse::parse(parser, true))) },
