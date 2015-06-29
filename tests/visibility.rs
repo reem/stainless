@@ -1,4 +1,4 @@
-#![feature(plugin)]
+#![feature(plugin,const_fn)]
 #![plugin(stainless)]
 
 #[derive(Copy, Clone)]
