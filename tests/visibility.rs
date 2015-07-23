@@ -1,7 +1,7 @@
-#![feature(plugin)]
+#![feature(plugin,const_fn)]
 #![plugin(stainless)]
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 pub struct X(i32);
 
 #[cfg(test)]

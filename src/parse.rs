@@ -18,14 +18,14 @@ pub trait Parse<Cfg> {
 impl Parse<bool> for Test {
     fn parse(parser: &mut Parser, failing: bool) -> Test {
         // Description of this test.
-        let (description, _) = parser.parse_str();
+        let (description, _) = parser.parse_str().ok().unwrap();
 
         Test {
             // Get as a String
             description: description.to_string(),
 
             // The associated block
-            block: parser.parse_block(),
+            block: parser.parse_block().ok().unwrap(),
 
             failing: failing
         }
@@ -35,19 +35,19 @@ impl Parse<bool> for Test {
 impl Parse<()> for Bench {
     fn parse(parser: &mut Parser, _: ()) -> Bench {
         // Description of this benchmark
-        let (description, _) = parser.parse_str();
+        let (description, _) = parser.parse_str().ok().unwrap();
 
-        let name = match (parser.bump_and_get(), parser.parse_ident(), parser.bump_and_get()) {
+        let name = match (parser.bump_and_get().ok().unwrap(), parser.parse_ident().ok().unwrap(), parser.bump_and_get().ok().unwrap()) {
             (token::OpenDelim(token::Paren), ident, token::CloseDelim(token::Paren)) => { ident },
 
             (one, two, three) => {
-                parser.fatal(&format!("Expected `($ident)`, found {:?}{:?}{:?}", one, two, three))
+                panic!("{}", parser.fatal(&format!("Expected `($ident)`, found {:?}{:?}{:?}", one, two, three)));
             }
         };
 
         Bench {
             description: description.to_string(),
-            block: parser.parse_block(),
+            block: parser.parse_block().ok().unwrap(),
             bench: P(name)
         }
     }
@@ -79,7 +79,7 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
             // Nested describe block.
             None => {
                 // Get the name of this describe block
-                let name = parser.parse_ident();
+                let name = parser.parse_ident().ok().unwrap();
                 // Move past the opening {
                 try(parser, token::OpenDelim(token::Brace), "{ after the name of a describe! block");
                 Some(name)
@@ -99,27 +99,35 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
             //     - describe!
             //
             // Any other top-level idents are not allowed.
-            let block_name = parser.parse_ident();
+            let block_name = parser.parse_ident().ok().unwrap();
 
             match block_name.as_str() {
                 BEFORE_EACH | GIVEN => {
-                    if state.before_each.is_some() { parser.fatal("Only one `before_each` block is allowed per `describe!` block.") }
-                    state.before_each = Some(parser.parse_block());
+                    if state.before_each.is_some() {
+                        panic!("{}", parser.fatal("Only one `before_each` block is allowed per `describe!` block."));
+                    }
+                    state.before_each = Some(parser.parse_block().ok().unwrap());
                 },
 
                 AFTER_EACH | THEN => {
-                    if state.after_each.is_some() { parser.fatal("Only one `after_each` block is allowed per `describe!` block.") }
-                    state.after_each = Some(parser.parse_block());
+                    if state.after_each.is_some() {
+                        panic!("{}", parser.fatal("Only one `after_each` block is allowed per `describe!` block."));
+                    }
+                    state.after_each = Some(parser.parse_block().ok().unwrap());
                 },
 
                 BEFORE => {
-                    if state.before.is_some() { parser.fatal("Only one `before` block is allowed per `describe!` block.") }
-                    state.before = Some(parser.parse_block());
+                    if state.before.is_some() {
+                        panic!("{}", parser.fatal("Only one `before` block is allowed per `describe!` block."));
+                    }
+                    state.before = Some(parser.parse_block().ok().unwrap());
                 },
 
                 AFTER => {
-                    if state.after.is_some() { parser.fatal("Only one `after` block is allowed per `describe!` block.") }
-                    state.after = Some(parser.parse_block());
+                    if state.after.is_some() {
+                        panic!("{}", parser.fatal("Only one `after` block is allowed per `describe!` block."));
+                    }
+                    state.after = Some(parser.parse_block().ok().unwrap());
                 },
 
                 // Regular `#[test]`.
@@ -154,19 +162,19 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
 }
 
 fn try(parser: &mut Parser, token: token::Token, err: &str) {
-    let real = parser.bump_and_get();
+    let real = parser.bump_and_get().ok().unwrap();
     if real != token {
-        parser.fatal(&format!("Expected {}, but found `{:?}`", err, real))
+        panic!("{}", parser.fatal(&format!("Expected {}, but found `{:?}`", err, real)));
     }
 }
 
 fn illegal(parser: &mut Parser, banned: &str) {
     // Illegal block name.
     let span = parser.span;
-    parser.span_fatal(span, &format!("Expected one of: `{}`, but found: `{}`",
+    panic!("{}", parser.span_fatal(span, &format!("Expected one of: `{}`, but found: `{}`",
         format!("{}, {}, {}, {}, {}, {}, {}, {}",
                 BEFORE_EACH, AFTER_EACH, BEFORE, AFTER,
                 IT, BENCH, FAILING, DESCRIBE),
-        banned));
+        banned)));
 }
 
