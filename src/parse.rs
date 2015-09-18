@@ -99,9 +99,9 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
             //     - describe!
             //
             // Any other top-level idents are not allowed.
-            let block_name = parser.parse_ident().ok().unwrap();
+            let block_name = parser.parse_ident().ok().unwrap().name;
 
-            match block_name.as_str() {
+            match &*block_name.as_str() {
                 BEFORE_EACH | GIVEN => {
                     if state.before_each.is_some() {
                         panic!("{}", parser.fatal("Only one `before_each` block is allowed per `describe!` block."));
@@ -177,4 +177,3 @@ fn illegal(parser: &mut Parser, banned: &str) {
                 IT, BENCH, FAILING, DESCRIBE),
         banned)));
 }
-
