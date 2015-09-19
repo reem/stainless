@@ -100,5 +100,3 @@ pub fn plugin_registrar(reg: &mut plugin::Registry) {
         syntax::ext::base::IdentTT(Box::new(describe), None, false)
     );
 }
-
-
