@@ -80,10 +80,10 @@
 //!
 
 extern crate syntax;
-extern crate rustc;
+extern crate rustc_plugin;
 
 use self::describe::describe;
-use rustc::plugin;
+use rustc_plugin as plugin;
 use syntax::parse::token;
 
 mod describe;
