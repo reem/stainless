@@ -88,6 +88,22 @@ small units and gives you granular control over where `before_each` and
 Together, these 4 types of subblocks give you more flexibility and control
 than the built in testing infrastructure.
 
+Each describe block comes with a silent pub use super::*; in it, so you can
+`pub use` in the containing module if you want to import modules for your tests:
+
+```rust
+#[cfg(test)]
+mod tests {
+    pub use std::collections::HashMap();
+    
+    describe! stainless {
+        it "can use HashMap" {
+            let map = HashMap::new();
+        }
+    }
+}
+```
+
 ## License
 
 MIT
