@@ -94,7 +94,7 @@ Each describe block comes with a silent pub use super::*; in it, so you can
 ```rust
 #[cfg(test)]
 mod tests {
-    pub use std::collections::HashMap();
+    pub use std::collections::HashMap;
     
     describe! stainless {
         it "can use HashMap" {
