@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use syntax::{ast, abi, ast_util, codemap};
+use syntax::{ast, abi, codemap};
 use syntax::ptr::P;
 use syntax::ext::base;
 use syntax::parse::token;
@@ -86,7 +86,7 @@ impl<'a> Generate<&'a DescribeState> for Test {
                 ast::Unsafety::Normal,
                 ast::Constness::NotConst,
                 abi::Rust,
-                ast_util::empty_generics(),
+                ast::Generics::default(),
 
                 // Add the body of the function.
                 test_body
@@ -129,7 +129,7 @@ impl Generate<()> for Bench {
                 ast::Unsafety::Normal,
                 ast::Constness::Const,
                 abi::Rust,
-                ast_util::empty_generics(),
+                ast::Generics::default(),
 
                 // Add the body of the function.
                 block
@@ -195,4 +195,3 @@ impl<'a> Generate<Option<&'a DescribeState>> for DescribeState {
         cx.item_mod(sp, sp, name, vec![], items)
     }
 }
-
