@@ -37,7 +37,7 @@ impl Parse<()> for Bench {
         // Description of this benchmark
         let (description, _) = parser.parse_str().ok().unwrap();
 
-        let name = match (parser.bump_and_get().ok().unwrap(), parser.parse_ident().ok().unwrap(), parser.bump_and_get().ok().unwrap()) {
+        let name = match (parser.bump_and_get(), parser.parse_ident().ok().unwrap(), parser.bump_and_get()) {
             (token::OpenDelim(token::Paren), ident, token::CloseDelim(token::Paren)) => { ident },
 
             (one, two, three) => {
@@ -162,7 +162,7 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
 }
 
 fn try(parser: &mut Parser, token: token::Token, err: &str) {
-    let real = parser.bump_and_get().ok().unwrap();
+    let real = parser.bump_and_get();
     if real != token {
         panic!("{:?}", parser.fatal(&format!("Expected {}, but found `{:?}`", err, real)));
     }
