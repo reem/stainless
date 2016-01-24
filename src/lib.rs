@@ -82,6 +82,9 @@
 extern crate syntax;
 extern crate rustc_plugin;
 
+#[macro_use]
+mod macros;
+
 use self::describe::describe;
 use rustc_plugin as plugin;
 use syntax::parse::token;
