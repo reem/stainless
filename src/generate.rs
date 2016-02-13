@@ -75,24 +75,24 @@ impl<'a> Generate<&'a DescribeState> for Test {
             ident: cx.ident_of(&description.replace(" ", "_")),
             attrs: attrs,
             id: ast::DUMMY_NODE_ID,
-            node: ast::ItemFn(
+            node: ast::ItemKind::Fn(
                 // Takes no arguments and returns ()
                 P(ast::FnDecl {
                     inputs: vec![],
-                    output: ast::DefaultReturn(sp),
+                    output: ast::FunctionRetTy::Default(sp),
                     variadic: false
                 }),
                 // All the usual types.
                 ast::Unsafety::Normal,
                 ast::Constness::NotConst,
-                abi::Rust,
+                abi::Abi::Rust,
                 ast::Generics::default(),
 
                 // Add the body of the function.
                 test_body
             ),
             // Inherited visibility (not pub)
-            vis: ast::Inherited,
+            vis: ast::Visibility::Inherited,
             span: sp
         })
     }
@@ -113,7 +113,7 @@ impl Generate<()> for Bench {
             // Add #[test] and possibly #[should_panic]
             attrs: vec![bench_attribute],
             id: ast::DUMMY_NODE_ID,
-            node: ast::ItemFn(
+            node: ast::ItemKind::Fn(
                 // Takes one argument of &mut Bencher
                 P(ast::FnDecl {
                     inputs: vec![ast::Arg {
@@ -121,21 +121,21 @@ impl Generate<()> for Bench {
                         pat: quote_pat!(cx, $bench),
                         id: ast::DUMMY_NODE_ID
                     }],
-                    output: ast::DefaultReturn(sp),
+                    output: ast::FunctionRetTy::Default(sp),
                     variadic: false
                 }),
 
                 // All the usual types.
                 ast::Unsafety::Normal,
                 ast::Constness::Const,
-                abi::Rust,
+                abi::Abi::Rust,
                 ast::Generics::default(),
 
                 // Add the body of the function.
                 block
             ),
             // Inherited visibility (not pub)
-            vis: ast::Inherited,
+            vis: ast::Visibility::Inherited,
             span: sp
         })
     }
@@ -183,7 +183,7 @@ impl<'a> Generate<Option<&'a DescribeState>> for DescribeState {
         //
         // This glob is `pub use super::*` so that nested `describe!` blocks (which will also contain
         // this glob) will be able to see all the symbols.
-        let super_glob = cx.item_use_glob(sp, ast::Public, vec![cx.ident_of("super")]);
+        let super_glob = cx.item_use_glob(sp, ast::Visibility::Public, vec![cx.ident_of("super")]);
         let mut items = vec![super_glob];
 
         // Create subblocks from a full DescribeState
