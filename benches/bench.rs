@@ -1,4 +1,4 @@
-#![feature(plugin, test)]
+#![feature(plugin,const_fn,test)]
 #![plugin(stainless)]
 
 extern crate test;
@@ -8,4 +8,3 @@ describe! benchmarking {
             bencher.iter(|| 2 * 2)
     }
 }
-
