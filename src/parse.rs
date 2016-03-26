@@ -135,7 +135,7 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
                 IT | WHEN => { state.subblocks.push(SubBlock::Test(Parse::parse(parser, TestConfig::test()))) },
 
                 // `#[should_panic]` test.
-                FAILING => { state.subblocks.push(SubBlock::Test(Parse::parse(parser, TestConfig::failing_test()))) },
+                FAILING => { state.subblocks.push(SubBlock::Test(Parse::parse(parser, TestConfig::failing_test(None)))) },
 
                 //`#[ignore]` test
                 IGNORE => { state.subblocks.push(SubBlock::Test(Parse::parse(parser, TestConfig::ignored_test()))) },

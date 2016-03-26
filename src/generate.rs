@@ -27,6 +27,7 @@ impl<'a> Generate<&'a DescribeState> for Test {
 
         // Create the #[should_panic] attribute.
         let should_panic = cx.attribute(sp, cx.meta_word(sp, token::InternedString::new("should_panic")));
+
         // Create the #[ignore] attribute.
         let ignore = cx.attribute(sp, cx.meta_word(sp, token::InternedString::new("ignore")));
 
@@ -65,11 +66,28 @@ impl<'a> Generate<&'a DescribeState> for Test {
         // Constructing attributes:
         // #[test] - no way without it
         // #[allow(non_snake_case_attr)] as description may contain upper case
-        // #[should_panic] if specified
+        // #[should_panic] or #[should_panic(expected = "...")] if specified
         // #[ignore] if specified
         let mut attrs = vec![test_attribute, allow_non_snake_case];
         if test_config.failing {
-            attrs.push(should_panic);
+            match test_config.failing_msg {
+                Some(msg) => {
+                    // Create #[should_panic(expected = "...")] attribute
+                    let should_panic_str = token::InternedString::new("should_panic");
+                    let expected_str = token::InternedString::new("expected");
+                    let interned_msg = token::InternedString::new(msg);
+                    attrs.push(cx.attribute(sp, cx.meta_list(
+                        sp,
+                        should_panic_str,
+                        vec![cx.meta_name_value(
+                            sp,
+                            expected_str,
+                            ast::LitKind::Str(interned_msg, ast::StrStyle::Cooked)
+                        )]
+                    )));
+                },
+                None => attrs.push(should_panic)
+            };
         }
         if test_config.ignored {
             attrs.push(ignore);

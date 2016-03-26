@@ -12,29 +12,33 @@ pub struct Test {
 #[derive(Clone)]
 pub struct TestConfig {
     pub ignored: bool,
-    pub failing: bool
+    pub failing: bool,
+    pub failing_msg: Option<&'static str>,
 }
 
 impl TestConfig {
 
-    pub fn failing_test() -> TestConfig {
+    pub fn failing_test(failing_msg: Option<&'static str>) -> TestConfig {
         TestConfig {
             failing: true,
-            ignored: false
+            ignored: false,
+            failing_msg: failing_msg,
         }
     }
 
     pub fn ignored_test() -> TestConfig {
         TestConfig {
             failing: false,
-            ignored: true
+            ignored: true,
+            failing_msg: None,
         }
     }
 
     pub fn test() -> TestConfig {
         TestConfig {
             failing: false,
-            ignored: false
+            ignored: false,
+            failing_msg: None,
         }
     }
 }
