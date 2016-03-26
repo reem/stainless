@@ -18,7 +18,7 @@ pub trait Parse<Cfg> {
 impl Parse<TestConfig> for Test {
     fn parse(parser: &mut Parser, test_config: TestConfig) -> Test {
         // Description of this test.
-        let (description, _) = parser.parse_str().ok().unwrap();
+        let (description, _) = parser.parse_str().ok().expect("Test should have description");
 
         Test {
             // Get as a String
@@ -35,7 +35,7 @@ impl Parse<TestConfig> for Test {
 impl Parse<()> for Bench {
     fn parse(parser: &mut Parser, _: ()) -> Bench {
         // Description of this benchmark
-        let (description, _) = parser.parse_str().ok().unwrap();
+        let (description, _) = parser.parse_str().ok().expect("Bench should have description");
 
         let name = match (parser.bump_and_get(), parser.parse_ident().unwrap(), parser.bump_and_get()) {
             (token::OpenDelim(token::Paren), ident, token::CloseDelim(token::Paren)) => { ident },
@@ -80,7 +80,7 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
             // Nested describe block.
             None => {
                 // Get the name of this describe block
-                let name = parser.parse_ident().ok().unwrap();
+                let name = parser.parse_ident().ok().expect("Describe block should have name");
                 // Move past the opening {
                 try(parser, token::OpenDelim(token::Brace), "{ after the name of a describe! block");
                 Some(name)
@@ -100,7 +100,7 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
             //     - describe!
             //
             // Any other top-level idents are not allowed.
-            let block_name = parser.parse_ident().ok().unwrap().name;
+            let block_name = parser.parse_ident().ok().expect("Expected test block").name;
 
             match &*block_name.as_str() {
                 BEFORE_EACH | GIVEN => {
@@ -134,8 +134,16 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
                 // Regular `#[test]`.
                 IT | WHEN => { state.subblocks.push(SubBlock::Test(Parse::parse(parser, TestConfig::test()))) },
 
-                // `#[should_panic]` test.
-                FAILING => { state.subblocks.push(SubBlock::Test(Parse::parse(parser, TestConfig::failing_test(None)))) },
+                // `#[should_panic]` or `#[should_panic(expected = "...")] test.
+                FAILING => {
+                    let mut fail_msg = None;
+                    if parser.token == token::OpenDelim(token::Paren) {
+                        parser.bump();
+                        fail_msg = Some(parser.parse_str().ok().expect("Expected failing message"));
+                        try(parser, token::CloseDelim(token::Paren), "unclosed failing condition paren");
+                    }
+                    state.subblocks.push(SubBlock::Test(Parse::parse(parser, TestConfig::failing_test(fail_msg))))
+                },
 
                 //`#[ignore]` test
                 IGNORE => { state.subblocks.push(SubBlock::Test(Parse::parse(parser, TestConfig::ignored_test()))) },

@@ -75,14 +75,13 @@ impl<'a> Generate<&'a DescribeState> for Test {
                     // Create #[should_panic(expected = "...")] attribute
                     let should_panic_str = token::InternedString::new("should_panic");
                     let expected_str = token::InternedString::new("expected");
-                    let interned_msg = token::InternedString::new(msg);
                     attrs.push(cx.attribute(sp, cx.meta_list(
                         sp,
                         should_panic_str,
                         vec![cx.meta_name_value(
                             sp,
                             expected_str,
-                            ast::LitKind::Str(interned_msg, ast::StrStyle::Cooked)
+                            ast::LitKind::Str(msg.0, msg.1)
                         )]
                     )));
                 },

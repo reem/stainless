@@ -1,5 +1,6 @@
 use syntax::ptr::P;
 use syntax::ast;
+use syntax::parse::token;
 
 /// A test as a description and associated block.
 #[derive(Clone)]
@@ -13,12 +14,12 @@ pub struct Test {
 pub struct TestConfig {
     pub ignored: bool,
     pub failing: bool,
-    pub failing_msg: Option<&'static str>,
+    pub failing_msg: Option<(token::InternedString, ast::StrStyle)>,
 }
 
 impl TestConfig {
 
-    pub fn failing_test(failing_msg: Option<&'static str>) -> TestConfig {
+    pub fn failing_test(failing_msg: Option<(token::InternedString, ast::StrStyle)>) -> TestConfig {
         TestConfig {
             failing: true,
             ignored: false,
