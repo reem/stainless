@@ -1,4 +1,4 @@
-#![feature(plugin,const_fn)]
+#![feature(plugin)]
 #![plugin(stainless)]
 
 describe! top_level {

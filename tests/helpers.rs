@@ -1,4 +1,4 @@
-#![feature(plugin,const_fn)]
+#![feature(plugin)]
 #![plugin(stainless)]
 
 #[cfg(test)]
@@ -13,4 +13,3 @@ mod test {
         }
     }
 }
-

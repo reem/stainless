@@ -1,4 +1,4 @@
-#![feature(plugin,const_fn,test)]
+#![feature(plugin, test)]
 #![plugin(stainless)]
 
 extern crate test;
