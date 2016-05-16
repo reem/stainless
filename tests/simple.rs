@@ -1,4 +1,4 @@
-#![feature(plugin,const_fn)]
+#![feature(plugin)]
 #![plugin(stainless)]
 
 describe! addition {
@@ -16,4 +16,3 @@ describe! addition {
         assert_eq!(y, 6);
     }
 }
-

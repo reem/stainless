@@ -1,2 +1,10 @@
 language: rust
 rust: nightly
+cache: cargo
+os:
+  - linux
+  - osx
+script:
+  - cargo build
+  - cargo test
+  - cargo bench

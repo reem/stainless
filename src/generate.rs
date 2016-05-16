@@ -150,7 +150,7 @@ impl Generate<()> for Bench {
 
                 // All the usual types.
                 ast::Unsafety::Normal,
-                ast::Constness::Const,
+                ast::Constness::NotConst,
                 abi::Abi::Rust,
                 ast::Generics::default(),
 

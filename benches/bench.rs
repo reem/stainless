@@ -8,4 +8,3 @@ describe! benchmarking {
             bencher.iter(|| 2 * 2)
     }
 }
-
