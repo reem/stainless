@@ -18,6 +18,28 @@ pub trait Generate<Cfg> {
     fn generate(self, codemap::Span, &mut base::ExtCtxt, Cfg) -> P<ast::Item>;
 }
 
+fn block_to_stmts(block: &ast::Block) -> Vec<ast::Stmt> {
+    use syntax::codemap::Spanned;
+
+    let block = block.clone();
+
+    let id = block.id;
+    let stmts = block.stmts;
+    let expr = block.expr;
+
+    stmts
+        .iter()
+        .chain(expr.map(|expr| {
+            let span = expr.span;
+            Spanned {
+                node: ast::StmtKind::Expr(expr, id),
+                span: span,
+            }
+        }).iter())
+        .cloned()
+        .collect()
+}
+
 impl<'a> Generate<&'a DescribeState> for Test {
     fn generate(self, sp: codemap::Span, cx: &mut base::ExtCtxt, state: &'a DescribeState) -> P<ast::Item> {
         let Test { description, block, test_config } = self;
@@ -43,21 +65,28 @@ impl<'a> Generate<&'a DescribeState> for Test {
 
             (&Some(ref before), &None) => {
                 P(ast::Block {
-                    stmts: before.stmts.iter().chain(&*block.stmts).cloned().collect(),
+                    stmts: block_to_stmts(&before).iter()
+                            .chain(block_to_stmts(&block).iter())
+                            .cloned().collect(),
                     ..block.deref().clone()
                 })
             },
 
             (&None, &Some(ref after)) => {
                 P(ast::Block {
-                    stmts: block.stmts.iter().chain(&*after.stmts).cloned().collect(),
+                    stmts: block_to_stmts(&block).iter()
+                            .chain(block_to_stmts(&after).iter())
+                            .cloned().collect(),
                     ..block.deref().clone()
                 })
             },
 
             (&Some(ref before), &Some(ref after)) => {
                 P(ast::Block {
-                    stmts: before.stmts.iter().chain(&*block.stmts).chain(&*after.stmts).cloned().collect(),
+                    stmts: block_to_stmts(&before).iter()
+                            .chain(block_to_stmts(&block).iter())
+                            .chain(block_to_stmts(&after).iter())
+                            .cloned().collect(),
                     ..block.deref().clone()
                 })
             }
