@@ -31,9 +31,9 @@ Stainless exports the `describe!` syntax extension, which allows you
 to quickly generate complex testing hierarchies and reduce boilerplate
 through `before_each` and `after_each`.
 
-Stainless currently supports 4 types of subblocks:
- - `before_each` and `after_each`,
- - `it` and `failing`
+Stainless currently supports the following types of subblocks:
+ - `before_each` and `after_each`
+ - `it`, `failing`, and `ignore`
  - `bench`
  - nested `describe!`
 
@@ -43,7 +43,9 @@ shortening your tests.
 
 `it` generates tests which use `before_each` and `after_each`.
 `failing` does the same, except the generated tests are marked with
-`#[should_panic]`.
+`#[should_panic]`. It optionally takes an argument which is matched against the
+failure message. `ignore` is equivalent to marking a test with `#[ignore]` which
+disables the test by default.
 
 `bench` allows you to generate benchmarks in the same fashion, though
 *`before_each` and `after_each` blocks do not currently affect `bench`
