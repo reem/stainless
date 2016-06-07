@@ -2,7 +2,19 @@
 
 name = "stainless"
 version = "0.1.5"
-authors = ["Jonathan Reem <jonathan.reem@gmail.com>"]
+authors = [
+  "Jonathan Reem <jonathan.reem@gmail.com>",
+  "Aleksey Kuznetsov <zummenix@gmail.com>",
+  "Alex Diez <alexvic.amatory@gmail.com>",
+  "Mark Schifflin <rschifflin@hotmail.com>",
+  "Seb Glazebrook <sebastian.glazebrook@redbubble.com>",
+  "Taylor Cramer <cramertj@cs.washington.edu>",
+  "Thijs Cadier <thijs@appsignal.com>",
+  "Urban Hafner <contact@urbanhafner.com>",
+  "Utkarsh Kukreti <utkarshkukreti@gmail.com>",
+  "Valerii Hiora <valerii.hiora@gmail.com>",
+  "Vladimir Pouzanov <farcaller@gmail.com>",
+]
 description = "Organized, flexible testing framework."
 repository = "https://github.com/reem/stainless"
 license = "MIT"
