@@ -1,6 +1,4 @@
-// Copyright 2014 Jonathan Reem, Utkarsh Kukreti, Valerii Hiora
-// Copyright 2015 Jonathan Reem, Urban Hafner, Mark Schifflin, Utkarsh Kukreti
-// Copyright 2016 Taylor Cramer, Urban Hafner, Alex Diez
+// Copyright 2014-2016 The Stainless Developers
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 // associated documentation files (the "Software"), to deal in the Software without restriction,
