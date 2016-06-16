@@ -152,4 +152,8 @@ mod tests {
 
 ## License
 
-MIT
+MIT. See the LICENSE file for details.
+
+## Authors
+
+See Cargo.toml for the full list of authors.

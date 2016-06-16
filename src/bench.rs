@@ -1,3 +1,9 @@
+// Copyright 2014-2015 The Stainless Developers. See the LICENSE file at the top-level directory of
+// this distrubution.
+//
+// Licensed under the MIT license. This file may not be copied, modified, or distributed except
+// according to those terms.
+
 use syntax::ast;
 use syntax::ptr::P;
 
@@ -9,4 +15,3 @@ pub struct Bench {
     pub description: String,
     pub block: P<ast::Block>
 }
-

@@ -1,3 +1,9 @@
+// Copyright 2014-2015 The Stainless Developers. See the LICENSE file at the top-level directory of
+// this distrubution.
+//
+// Licensed under the MIT license. This file may not be copied, modified, or distributed except
+// according to those terms.
+
 /// ## Internal Code Guide
 ///
 /// This crate is centered around two traits, Parse and Generate,
@@ -64,4 +70,3 @@ pub fn describe<'a>(cx: &'a mut base::ExtCtxt, sp: codemap::Span,
     // Export the new module.
     base::MacEager::items(SmallVector::one(state.generate(sp, cx, None)))
 }
-

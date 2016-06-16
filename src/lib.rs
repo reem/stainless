@@ -1,3 +1,9 @@
+// Copyright 2014-2016 The Stainless Developers. See the LICENSE file at the top-level directory of
+// this distrubution.
+//
+// Licensed under the MIT license. This file may not be copied, modified, or distributed except
+// according to those terms.
+
 #![feature(plugin_registrar, quote, rustc_private)]
 #![deny(missing_docs, warnings)]
 
@@ -154,7 +160,11 @@
 //!
 //! ## License
 //!
-//! MIT
+//! MIT. See the LICENSE file for details.
+//!
+//! ## Authors
+//!
+//! See Cargo.toml for the full list of authors.
 
 extern crate syntax;
 extern crate rustc_plugin;
