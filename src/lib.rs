@@ -31,6 +31,8 @@
 //!
 //! This will make stainless available when you run the tests using `cargo
 //! test`.
+//! When using stainless only with a library, make sure to run tests using
+//! `cargo test --lib`.
 //!
 //! ## Overview
 //!
