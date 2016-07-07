@@ -28,7 +28,7 @@
 /// modules respectively.
 ///
 
-use syntax::{ast, codemap, parse};
+use syntax::{ast, codemap, parse, tokenstream};
 use syntax::ptr::P;
 use syntax::ext::base;
 use syntax::util::small_vector::SmallVector;
@@ -63,7 +63,7 @@ pub enum SubBlock {
 /// that they are detected and expanded inside of the implementation
 /// of `describe!`.
 pub fn describe<'a>(cx: &'a mut base::ExtCtxt, sp: codemap::Span,
-                name: ast::Ident, tokens: Vec<ast::TokenTree>) -> Box<base::MacResult + 'a> {
+                name: ast::Ident, tokens: Vec<tokenstream::TokenTree>) -> Box<base::MacResult + 'a> {
     // Parse a full DescribeState from the input, emitting errors if used incorrectly.
     let state: DescribeState = Parse::parse(&mut parse::tts_to_parser(cx.parse_sess(), tokens, cx.cfg()), (sp, &mut*cx, Some(name)));
 
