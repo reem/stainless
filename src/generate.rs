@@ -37,7 +37,7 @@ impl<'a> Generate<&'a DescribeState> for Test {
         // Create the #[ignore] attribute.
         let ignore = cx.attribute(sp, cx.meta_word(sp, token::InternedString::new("ignore")));
 
-        let non_snake_word = cx.meta_word(sp, token::InternedString::new("non_snake_case"));
+        let non_snake_word = cx.meta_list_item_word(sp, token::InternedString::new("non_snake_case"));
         let allow_non_snake_case = cx.meta_list(sp, token::InternedString::new("allow"),
                                                 vec![non_snake_word]);
         let allow_non_snake_case = cx.attribute(sp, allow_non_snake_case);
@@ -84,17 +84,17 @@ impl<'a> Generate<&'a DescribeState> for Test {
         let mut attrs = vec![test_attribute, allow_non_snake_case];
         if test_config.failing {
             match test_config.failing_msg {
-                Some(msg) => {
+                Some(_) => {
                     // Create #[should_panic(expected = "...")] attribute
                     let should_panic_str = token::InternedString::new("should_panic");
                     let expected_str = token::InternedString::new("expected");
                     attrs.push(cx.attribute(sp, cx.meta_list(
                         sp,
                         should_panic_str,
-                        vec![cx.meta_name_value(
+                        vec![cx.meta_list_item_word(
                             sp,
-                            expected_str,
-                            ast::LitKind::Str(msg.0, msg.1)
+                            expected_str
+                            /*ast::LitKind::Str(msg.0, msg.1)*/
                         )]
                     )));
                 },
@@ -120,7 +120,11 @@ impl<'a> Generate<&'a DescribeState> for Test {
                 }),
                 // All the usual types.
                 ast::Unsafety::Normal,
-                ast::Constness::NotConst,
+                /*ast::Constness::NotConst,*/
+                codemap::Spanned {
+                    node: ast::Constness::NotConst,
+                    span: sp
+                },
                 abi::Abi::Rust,
                 ast::Generics::default(),
 
@@ -163,7 +167,10 @@ impl Generate<()> for Bench {
 
                 // All the usual types.
                 ast::Unsafety::Normal,
-                ast::Constness::NotConst,
+                codemap::Spanned {
+                    node: ast::Constness::NotConst,
+                    span: sp
+                },
                 abi::Abi::Rust,
                 ast::Generics::default(),
 
