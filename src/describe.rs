@@ -65,7 +65,7 @@ pub enum SubBlock {
 pub fn describe<'a>(cx: &'a mut base::ExtCtxt, sp: codemap::Span,
                 name: ast::Ident, tokens: Vec<tokenstream::TokenTree>) -> Box<base::MacResult + 'a> {
     // Parse a full DescribeState from the input, emitting errors if used incorrectly.
-    let state: DescribeState = Parse::parse(&mut parse::tts_to_parser(cx.parse_sess(), tokens, cx.cfg().clone()), (sp, &mut*cx, Some(name)));
+    let state: DescribeState = Parse::parse(&mut parse::tts_to_parser(cx.parse_sess(), tokens), (sp, &mut*cx, Some(name)));
 
     // Export the new module.
     base::MacEager::items(SmallVector::one(state.generate(sp, cx, None)))
