@@ -1,3 +1,7 @@
+## 0.1.9 [☰](https://github.com/reem/stainless/compare/0.1.8...0.1.9)
+
+* Fix compilation on the latest nightly compiler. #73
+
 ## 0.1.8 [☰](https://github.com/reem/stainless/compare/0.1.7...0.1.8)
 
 * Fix compilation on the latest nightly compiler. #72
