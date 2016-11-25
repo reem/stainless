@@ -9,7 +9,7 @@ use std::ops::Deref;
 use syntax::{ast, abi, codemap};
 use syntax::ptr::P;
 use syntax::ext::base;
-use syntax::parse::token;
+use syntax::symbol::Symbol;
 
 use syntax::ext::build::AstBuilder;
 
@@ -29,16 +29,16 @@ impl<'a> Generate<&'a DescribeState> for Test {
         let Test { description, block, test_config } = self;
 
         // Create the #[test] attribute.
-        let test_attribute = cx.attribute(sp, cx.meta_word(sp, token::InternedString::new("test")));
+        let test_attribute = cx.attribute(sp, cx.meta_word(sp, Symbol::intern("test")));
 
         // Create the #[should_panic] attribute.
-        let should_panic = cx.attribute(sp, cx.meta_word(sp, token::InternedString::new("should_panic")));
+        let should_panic = cx.attribute(sp, cx.meta_word(sp, Symbol::intern("should_panic")));
 
         // Create the #[ignore] attribute.
-        let ignore = cx.attribute(sp, cx.meta_word(sp, token::InternedString::new("ignore")));
+        let ignore = cx.attribute(sp, cx.meta_word(sp, Symbol::intern("ignore")));
 
-        let non_snake_word = cx.meta_list_item_word(sp, token::InternedString::new("non_snake_case"));
-        let allow_non_snake_case = cx.meta_list(sp, token::InternedString::new("allow"),
+        let non_snake_word = cx.meta_list_item_word(sp, Symbol::intern("non_snake_case"));
+        let allow_non_snake_case = cx.meta_list(sp, Symbol::intern("allow"),
                                                 vec![non_snake_word]);
         let allow_non_snake_case = cx.attribute(sp, allow_non_snake_case);
 
@@ -86,8 +86,8 @@ impl<'a> Generate<&'a DescribeState> for Test {
             match test_config.failing_msg {
                 Some(msg) => {
                     // Create #[should_panic(expected = "...")] attribute
-                    let should_panic_str = token::InternedString::new("should_panic");
-                    let expected_str = token::InternedString::new("expected");
+                    let should_panic_str = Symbol::intern("should_panic");
+                    let expected_str = Symbol::intern("expected");
                     let expected_name_value = cx.meta_name_value(
                         sp,
                         expected_str,
@@ -143,7 +143,7 @@ impl Generate<()> for Bench {
         let Bench { bench, description, block } = self;
 
         // Create the #[bench] attribute.
-        let bench_attribute = cx.attribute(sp, cx.meta_word(sp, token::InternedString::new("bench")));
+        let bench_attribute = cx.attribute(sp, cx.meta_word(sp, Symbol::intern("bench")));
 
         // Create the final Item that represents the benchmark.
         P(ast::Item {

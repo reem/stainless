@@ -173,7 +173,8 @@ extern crate rustc_plugin;
 
 use self::describe::describe;
 use rustc_plugin as plugin;
-use syntax::parse::token;
+use syntax::symbol::Symbol;
+
 
 mod describe;
 mod parse;
@@ -185,7 +186,7 @@ mod generate;
 #[doc(hidden)]
 pub fn plugin_registrar(reg: &mut plugin::Registry) {
     reg.register_syntax_extension(
-        token::intern("describe"),
+        Symbol::intern("describe"),
         syntax::ext::base::IdentTT(Box::new(describe), None, false)
     );
 }
