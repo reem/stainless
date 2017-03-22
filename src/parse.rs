@@ -43,7 +43,20 @@ impl Parse<()> for Bench {
         // Description of this benchmark
         let (description, _) = parser.parse_str().ok().expect("Bench should have description");
 
-        let name = match (parser.bump_and_get(), parser.parse_ident().unwrap(), parser.bump_and_get()) {
+        parser.bump();
+        let open_delim = parser.token.clone();
+
+        let bench_ident = match parser.parse_ident() {
+            Ok(id) => id,
+            Err(e) => {
+                panic!("{:?}", parser.fatal(&format!("Expected `($ident)`, got err: {:?}", e)));
+            }
+        };
+
+        parser.bump();
+        let close_delim = parser.token.clone();
+
+        let name = match (open_delim, bench_ident, close_delim) {
             (token::OpenDelim(token::Paren), ident, token::CloseDelim(token::Paren)) => { ident },
 
             (one, two, three) => {
@@ -86,10 +99,17 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
             // Nested describe block.
             None => {
                 // Get the name of this describe block
-                let name = parser.parse_ident().ok().expect("Describe block should have name");
-                // Move past the opening {
-                try(parser, token::OpenDelim(token::Brace), "{ after the name of a describe! block");
-                Some(name)
+                match parser.parse_ident() {
+                    Ok(name) => {
+                        // Moving past the opening {
+                        try(parser, token::OpenDelim(token::Brace), "{ after the name of a describe! block");
+                        Some(name)
+                    },
+                    Err(e) => {
+                        panic!("{:?}", parser.fatal(&format!("Failed to parse the name of the describe block, got err: {:?}", e)));
+                    }
+
+                }
             }
         };
 
@@ -106,7 +126,14 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
             //     - describe!
             //
             // Any other top-level idents are not allowed.
-            let block_name = parser.parse_ident().ok().expect("Expected test block").name;
+            let block_name = match parser.parse_ident() {
+                Ok(ident) => ident.name,
+                Err(e) => {
+                    // technically this should never be reachable
+                    panic!("{:?}", parser.fatal(&format!("Failed to parse the name of a test block, got err: {:?}", e)));
+                },
+            };
+
 
             match &*block_name.as_str() {
                 BEFORE_EACH | GIVEN => {
@@ -142,6 +169,7 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
 
                 // `#[should_panic]` or `#[should_panic(expected = "...")] test.
                 FAILING => {
+
                     let mut fail_msg = None;
                     if parser.token == token::OpenDelim(token::Paren) {
                         parser.bump();
@@ -179,11 +207,12 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
     }
 }
 
-fn try(parser: &mut Parser, token: token::Token, err: &str) {
-    let real = parser.bump_and_get();
-    if real != token {
-        panic!("{:?}", parser.fatal(&format!("Expected {}, but found `{:?}`", err, real)));
+// checks if current token is the expected token
+fn try(parser: &mut Parser, expected_token: token::Token, err: &str) {
+    if parser.token != expected_token {
+        panic!("{:?}", parser.fatal(&format!("Expected {}, but found `{:?}`", err, parser.token)));
     }
+    parser.bump();
 }
 
 fn illegal(parser: &mut Parser, banned: &str) {
