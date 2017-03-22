@@ -43,8 +43,8 @@ impl Parse<()> for Bench {
         // Description of this benchmark
         let (description, _) = parser.parse_str().ok().expect("Bench should have description");
 
-        parser.bump();
         let open_delim = parser.token.clone();
+        parser.bump();
 
         let bench_ident = match parser.parse_ident() {
             Ok(id) => id,
@@ -53,8 +53,8 @@ impl Parse<()> for Bench {
             }
         };
 
-        parser.bump();
         let close_delim = parser.token.clone();
+        parser.bump();
 
         let name = match (open_delim, bench_ident, close_delim) {
             (token::OpenDelim(token::Paren), ident, token::CloseDelim(token::Paren)) => { ident },
