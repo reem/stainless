@@ -42,8 +42,6 @@ use bench::Bench;
 #[derive(Clone)]
 pub struct DescribeState {
     pub name: Option<ast::Ident>,
-    pub before: Option<P<ast::Block>>,
-    pub after: Option<P<ast::Block>>,
     pub before_each: Option<P<ast::Block>>,
     pub after_each: Option<P<ast::Block>>,
     pub subblocks: Vec<SubBlock>
