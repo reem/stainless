@@ -76,8 +76,6 @@ const BEFORE_EACH: &'static str = "before_each";
 const GIVEN:       &'static str = "given";
 const AFTER_EACH:  &'static str = "after_each";
 const THEN:        &'static str = "then";
-const BEFORE:      &'static str = "before";
-const AFTER:       &'static str = "after";
 const IT:          &'static str = "it";
 const IGNORE:      &'static str = "ignore";
 const WHEN:        &'static str = "when";
@@ -89,8 +87,10 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
     fn parse(parser: &mut Parser,
              (sp, cx, name): (codemap::Span, &'a mut base::ExtCtxt, Option<ast::Ident>)) -> DescribeState {
         let mut state = DescribeState {
-            name: None, before: None, after: None,
-            before_each: None, after_each: None, subblocks: vec![]
+            name: None,
+            before_each: None,
+            after_each: None,
+            subblocks: vec![],
         };
 
         state.name = match name {
@@ -150,20 +150,6 @@ impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>
                     state.after_each = Some(parser.parse_block().ok().unwrap());
                 },
 
-                BEFORE => {
-                    if state.before.is_some() {
-                        panic!("{:?}", parser.fatal("Only one `before` block is allowed per `describe!` block."));
-                    }
-                    state.before = Some(parser.parse_block().ok().unwrap());
-                },
-
-                AFTER => {
-                    if state.after.is_some() {
-                        panic!("{:?}", parser.fatal("Only one `after` block is allowed per `describe!` block."));
-                    }
-                    state.after = Some(parser.parse_block().ok().unwrap());
-                },
-
                 // Regular `#[test]`.
                 IT | WHEN => { state.subblocks.push(SubBlock::Test(Parse::parse(parser, TestConfig::test()))) },
 
@@ -218,9 +204,15 @@ fn try(parser: &mut Parser, expected_token: token::Token, err: &str) {
 fn illegal(parser: &mut Parser, banned: &str) {
     // Illegal block name.
     let span = parser.span;
-    panic!("{:?}", parser.span_fatal(span, &format!("Expected one of: `{}`, but found: `{}`",
-        format!("{}, {}, {}, {}, {}, {}, {}, {}, {}",
-                BEFORE_EACH, AFTER_EACH, BEFORE, AFTER,
-                IT, BENCH, FAILING, DESCRIBE, IGNORE),
-        banned)));
+    panic!(
+        "{:?}",
+        parser.span_fatal(
+            span,
+            &format!(
+                "Expected one of: `{}`, but found: `{}`",
+                format!("{}, {}, {}, {}, {}, {}, {}", BEFORE_EACH, AFTER_EACH, IT, BENCH, FAILING, DESCRIBE, IGNORE),
+                banned
+            )
+        )
+    );
 }
