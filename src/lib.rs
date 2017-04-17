@@ -154,7 +154,8 @@
 //!
 //!     describe! stainless {
 //!         it "can use HashMap" {
-//!             let map = HashMap::new();
+//!             let mut map = HashMap::new();
+//!             map.insert("key", "value");
 //!         }
 //!     }
 //! }
