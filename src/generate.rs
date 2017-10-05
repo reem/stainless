@@ -133,7 +133,8 @@ impl<'a> Generate<&'a DescribeState> for Test {
             ),
             // Inherited visibility (not pub)
             vis: ast::Visibility::Inherited,
-            span: sp
+            span: sp,
+            tokens: None,
         })
     }
 }
@@ -176,7 +177,8 @@ impl Generate<()> for Bench {
             ),
             // Inherited visibility (not pub)
             vis: ast::Visibility::Inherited,
-            span: sp
+            span: sp,
+            tokens: None,
         })
     }
 }
