@@ -21,7 +21,8 @@ authors = [
 description = "Organized, flexible testing framework."
 repository = "https://github.com/reem/stainless"
 license = "MIT"
-
+keywords = ["testing", "bdd", "tdd"]
+categories = ["development-tools", "development-tools::testing", "development-tools::profiling"]
 [lib]
 
 name = "stainless"
