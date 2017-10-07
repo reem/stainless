@@ -1,4 +1,9 @@
-## 0.1.10 [☰](https://github.com/reem/stainless/compare/0.1.10...0.1.11)
+## 0.1.12 [☰](https://github.com/reem/stainless/compare/0.1.11...0.1.12)
+
+* Remove `before` and `after`. They were half supported and resulted in weird errors. #81
+* Fix compilation on the latest nightly compiler. #86
+
+## 0.1.11 [☰](https://github.com/reem/stainless/compare/0.1.10...0.1.11)
 
 * Fix compilation on the latest nightly compiler. #80
 
