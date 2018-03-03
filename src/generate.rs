@@ -132,7 +132,7 @@ impl<'a> Generate<&'a DescribeState> for Test {
                 test_body
             ),
             // Inherited visibility (not pub)
-            vis: ast::Visibility::Inherited,
+            vis: ast::Visibility{node:ast::VisibilityKind::Inherited, span:sp},
             span: sp,
             tokens: None,
         })
@@ -176,7 +176,7 @@ impl Generate<()> for Bench {
                 block
             ),
             // Inherited visibility (not pub)
-            vis: ast::Visibility::Inherited,
+            vis: ast::Visibility{node:ast::VisibilityKind::Inherited, span:sp},
             span: sp,
             tokens: None,
         })
@@ -225,7 +225,7 @@ impl<'a> Generate<Option<&'a DescribeState>> for DescribeState {
         //
         // This glob is `pub use super::*` so that nested `describe!` blocks (which will also contain
         // this glob) will be able to see all the symbols.
-        let super_glob = cx.item_use_glob(sp, ast::Visibility::Public, vec![cx.ident_of("super")]);
+        let super_glob = cx.item_use_glob(sp, ast::Visibility{node:ast::VisibilityKind::Inherited, span:sp}, vec![cx.ident_of("super")]);
         let mut items = vec![super_glob];
 
         // Create subblocks from a full DescribeState
