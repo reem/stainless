@@ -169,6 +169,7 @@
 //! See Cargo.toml for the full list of authors.
 
 extern crate syntax;
+extern crate rustc_target;
 extern crate rustc_plugin;
 
 use self::describe::describe;

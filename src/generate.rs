@@ -6,7 +6,8 @@
 
 use std::ops::Deref;
 
-use syntax::{ast, abi, codemap};
+use syntax::{ast, codemap};
+use rustc_target::spec::abi::Abi;
 use syntax::ptr::P;
 use syntax::ext::base;
 use syntax::symbol::Symbol;
@@ -125,7 +126,7 @@ impl<'a> Generate<&'a DescribeState> for Test {
                 // All the usual types.
                 ast::Unsafety::Normal,
                 codemap::respan(sp, ast::Constness::NotConst),
-                abi::Abi::Rust,
+                Abi::Rust,
                 ast::Generics::default(),
 
                 // Add the body of the function.
@@ -169,7 +170,7 @@ impl Generate<()> for Bench {
                 // All the usual types.
                 ast::Unsafety::Normal,
                 codemap::respan(sp, ast::Constness::NotConst),
-                abi::Abi::Rust,
+                Abi::Rust,
                 ast::Generics::default(),
 
                 // Add the body of the function.
