@@ -4,6 +4,10 @@
 
 **Note that stainless currently requires the nightly version of the Rust compiler!**
 
+## This project is unmaintained
+
+Users are advised to use [speculate.rs](https://github.com/utkarshkukreti/speculate.rs) instead which implements a similar idea.
+
 ## Installation
 
 Add stainless as a dependency in your `Cargo.toml` file
