@@ -26,14 +26,23 @@ impl Parse<TestConfig> for Test {
         // Description of this test.
         let (description, _) = parser.parse_str().ok().expect("Test should have description");
 
-        Test {
-            // Get as a String
-            description: description.to_string(),
+        match parser.parse_block() {
+            Ok(block) => {
+                return Test {
+                    // Get as a String
+                    description: description.to_string(),
 
-            // The associated block
-            block: parser.parse_block().ok().unwrap(),
+                    // The associated block
+                    block: block,
 
-            test_config: test_config
+                    test_config: test_config
+                }
+            },
+            Err(mut err) => {
+                err.children.clear();
+                err.emit();
+                panic!("See above error");
+            }
         }
     }
 }
