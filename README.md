@@ -27,7 +27,7 @@ That file is normally called `src/main.rs` for executables and
 ```
 
 This will make stainless available when you run the tests using `cargo
-test`. 
+test`.
 When using stainless only with a library, make sure to run tests using
 `cargo test --lib`.
 
@@ -150,7 +150,8 @@ mod tests {
 
     describe! stainless {
         it "can use HashMap" {
-            let map = HashMap::new();
+            let mut map = HashMap::new();
+            map.insert("key", "value");
         }
     }
 }
