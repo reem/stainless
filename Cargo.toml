@@ -1,8 +1,8 @@
 [package]
-
-name = "stainless"
+name = "stainless2"
 version = "0.1.12"
 authors = [
+  "Pascal Seitz <pascal.seitz@gmail.com>",
   "Jonathan Reem <jonathan.reem@gmail.com>",
   "Aleksey Kuznetsov <zummenix@gmail.com>",
   "Alex Diez <alexvic.amatory@gmail.com>",
@@ -20,12 +20,12 @@ authors = [
   "Roman Pearah <github.to.soma@neverbox.com>",
 ]
 description = "Organized, flexible testing framework."
-repository = "https://github.com/reem/stainless"
+repository = "https://github.com/PSeitz/stainless"
 license = "MIT"
 keywords = ["testing", "bdd", "tdd"]
 categories = ["development-tools", "development-tools::testing", "development-tools::profiling"]
-[lib]
 
+[lib]
 name = "stainless"
 path = "src/lib.rs"
 plugin = true
