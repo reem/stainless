@@ -1,6 +1,6 @@
 [package]
 name = "stainless2"
-version = "0.1.12"
+version = "0.1.13"
 authors = [
   "Pascal Seitz <pascal.seitz@gmail.com>",
   "Jonathan Reem <jonathan.reem@gmail.com>",
