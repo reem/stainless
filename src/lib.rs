@@ -171,6 +171,7 @@
 extern crate syntax;
 extern crate rustc_target;
 extern crate rustc_plugin;
+extern crate rustc_data_structures;
 
 use self::describe::describe;
 use rustc_plugin as plugin;

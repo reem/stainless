@@ -31,7 +31,7 @@
 use syntax::{ast, codemap, parse, tokenstream};
 use syntax::ptr::P;
 use syntax::ext::base;
-use syntax::util::small_vector::SmallVector;
+use rustc_data_structures::small_vec::OneVector;
 
 use parse::Parse;
 use generate::Generate;
@@ -66,5 +66,5 @@ pub fn describe<'a>(cx: &'a mut base::ExtCtxt, sp: codemap::Span,
     let state: DescribeState = Parse::parse(&mut parse::stream_to_parser(cx.parse_sess(), tokens.into_iter().collect()), (sp, &mut*cx, Some(name)));
 
     // Export the new module.
-    base::MacEager::items(SmallVector::one(state.generate(sp, cx, None)))
+    base::MacEager::items(OneVector::one(state.generate(sp, cx, None)))
 }
