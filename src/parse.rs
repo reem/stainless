@@ -4,7 +4,7 @@
 // Licensed under the MIT license. This file may not be copied, modified, or distributed except
 // according to those terms.
 
-use syntax::{ast, codemap};
+use syntax::{ast, source_map};
 use syntax::ext::base;
 use syntax::parse::token;
 
@@ -83,9 +83,9 @@ const DESCRIBE:    &'static str = "describe";
 const FAILING:     &'static str = "failing";
 const BENCH:       &'static str = "bench";
 
-impl<'a, 'b> Parse<(codemap::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>)> for DescribeState {
+impl<'a, 'b> Parse<(source_map::Span, &'a mut base::ExtCtxt<'b>, Option<ast::Ident>)> for DescribeState {
     fn parse(parser: &mut Parser,
-             (sp, cx, name): (codemap::Span, &'a mut base::ExtCtxt, Option<ast::Ident>)) -> DescribeState {
+             (sp, cx, name): (source_map::Span, &'a mut base::ExtCtxt, Option<ast::Ident>)) -> DescribeState {
         let mut state = DescribeState {
             name: None,
             before_each: None,

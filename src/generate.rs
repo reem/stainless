@@ -6,7 +6,7 @@
 
 use std::ops::Deref;
 
-use syntax::{ast, abi, codemap};
+use syntax::{ast, source_map};
 use syntax::ptr::P;
 use syntax::ext::base;
 use syntax::symbol::Symbol;
@@ -21,11 +21,11 @@ use describe::{DescribeState, SubBlock};
 /// Trait meaning something can be turned into an ast::Item with configuration.
 pub trait Generate<Cfg> {
     /// Turn Self into an ast::Item with a configuration object.
-    fn generate(self, codemap::Span, &mut base::ExtCtxt, Cfg) -> P<ast::Item>;
+    fn generate(self, source_map::Span, &mut base::ExtCtxt, Cfg) -> P<ast::Item>;
 }
 
 impl<'a> Generate<&'a DescribeState> for Test {
-    fn generate(self, sp: codemap::Span, cx: &mut base::ExtCtxt, state: &'a DescribeState) -> P<ast::Item> {
+    fn generate(self, sp: source_map::Span, cx: &mut base::ExtCtxt, state: &'a DescribeState) -> P<ast::Item> {
         let Test { description, block, test_config } = self;
 
         // Create the #[test] attribute.
@@ -93,7 +93,7 @@ impl<'a> Generate<&'a DescribeState> for Test {
                         expected_str,
                         ast::LitKind::Str(msg.0, msg.1)
                     );
-                    let nested_expected_name_value = codemap::respan(
+                    let nested_expected_name_value = source_map::respan(
                         sp,
                         ast::NestedMetaItemKind::MetaItem(expected_name_value));
                     attrs.push(cx.attribute(sp, cx.meta_list(
@@ -123,16 +123,14 @@ impl<'a> Generate<&'a DescribeState> for Test {
                     variadic: false
                 }),
                 // All the usual types.
-                ast::Unsafety::Normal,
-                codemap::respan(sp, ast::Constness::NotConst),
-                abi::Abi::Rust,
+                ast::FnHeader::default(),
                 ast::Generics::default(),
 
                 // Add the body of the function.
                 test_body
             ),
             // Inherited visibility (not pub)
-            vis: ast::Visibility::Inherited,
+            vis: ast::Visibility{node:ast::VisibilityKind::Inherited, span:sp},
             span: sp,
             tokens: None,
         })
@@ -140,7 +138,7 @@ impl<'a> Generate<&'a DescribeState> for Test {
 }
 
 impl Generate<()> for Bench {
-    fn generate(self, sp: codemap::Span, cx: &mut base::ExtCtxt, _: ()) -> P<ast::Item> {
+    fn generate(self, sp: source_map::Span, cx: &mut base::ExtCtxt, _: ()) -> P<ast::Item> {
         let Bench { bench, description, block } = self;
 
         // Create the #[bench] attribute.
@@ -167,16 +165,14 @@ impl Generate<()> for Bench {
                 }),
 
                 // All the usual types.
-                ast::Unsafety::Normal,
-                codemap::respan(sp, ast::Constness::NotConst),
-                abi::Abi::Rust,
+                ast::FnHeader::default(),
                 ast::Generics::default(),
 
                 // Add the body of the function.
                 block
             ),
             // Inherited visibility (not pub)
-            vis: ast::Visibility::Inherited,
+            vis: ast::Visibility{node:ast::VisibilityKind::Inherited, span:sp},
             span: sp,
             tokens: None,
         })
@@ -184,7 +180,7 @@ impl Generate<()> for Bench {
 }
 
 impl<'a> Generate<&'a DescribeState> for SubBlock {
-    fn generate(self, sp: codemap::Span, cx: &mut base::ExtCtxt, state: &'a DescribeState) -> P<ast::Item> {
+    fn generate(self, sp: source_map::Span, cx: &mut base::ExtCtxt, state: &'a DescribeState) -> P<ast::Item> {
         match self {
             SubBlock::Test(test) => test.generate(sp, cx, state),
             SubBlock::Bench(bench) => bench.generate(sp, cx, ()),
@@ -194,7 +190,7 @@ impl<'a> Generate<&'a DescribeState> for SubBlock {
 }
 
 impl<'a> Generate<Option<&'a DescribeState>> for DescribeState {
-    fn generate(mut self, sp: codemap::Span, cx: &mut base::ExtCtxt,
+    fn generate(mut self, sp: source_map::Span, cx: &mut base::ExtCtxt,
                 state: Option<&'a DescribeState>) -> P<ast::Item> {
         // Get the name of this mod.
         let name = self.name.clone().unwrap();
@@ -225,7 +221,7 @@ impl<'a> Generate<Option<&'a DescribeState>> for DescribeState {
         //
         // This glob is `pub use super::*` so that nested `describe!` blocks (which will also contain
         // this glob) will be able to see all the symbols.
-        let super_glob = cx.item_use_glob(sp, ast::Visibility::Public, vec![cx.ident_of("super")]);
+        let super_glob = cx.item_use_glob(sp, ast::Visibility{node:ast::VisibilityKind::Inherited, span:sp}, vec![cx.ident_of("super")]);
         let mut items = vec![super_glob];
 
         // Create subblocks from a full DescribeState

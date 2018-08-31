@@ -28,10 +28,10 @@
 /// modules respectively.
 ///
 
-use syntax::{ast, codemap, parse, tokenstream};
+use syntax::{ast, source_map, parse, tokenstream};
 use syntax::ptr::P;
 use syntax::ext::base;
-use syntax::util::small_vector::SmallVector;
+use rustc_data_structures::small_vec::OneVector;
 
 use parse::Parse;
 use generate::Generate;
@@ -60,11 +60,11 @@ pub enum SubBlock {
 /// All other macros in stainless are actually "fake" in the sense
 /// that they are detected and expanded inside of the implementation
 /// of `describe!`.
-pub fn describe<'a>(cx: &'a mut base::ExtCtxt, sp: codemap::Span,
+pub fn describe<'a>(cx: &'a mut base::ExtCtxt, sp: source_map::Span,
                 name: ast::Ident, tokens: Vec<tokenstream::TokenTree>) -> Box<base::MacResult + 'a> {
     // Parse a full DescribeState from the input, emitting errors if used incorrectly.
     let state: DescribeState = Parse::parse(&mut parse::stream_to_parser(cx.parse_sess(), tokens.into_iter().collect()), (sp, &mut*cx, Some(name)));
 
     // Export the new module.
-    base::MacEager::items(SmallVector::one(state.generate(sp, cx, None)))
+    base::MacEager::items(OneVector::from_vec(vec![state.generate(sp, cx, None)]))
 }
