@@ -1,4 +1,4 @@
-# Stainless [![Build Status](https://travis-ci.org/reem/stainless.svg?branch=master)](https://travis-ci.org/reem/stainless)
+# Stainless [![Build Status](https://travis-ci.org/reem/stainless.svg?branch=master)](https://travis-ci.org/reem/stainless) [![Open Source Helpers](https://www.codetriage.com/reem/stainless/badges/users.svg)](https://www.codetriage.com/reem/stainless)
 
 > Stainless is a lightweight, flexible, unopinionated testing framework.
 
